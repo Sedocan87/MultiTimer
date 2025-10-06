@@ -1,10 +1,10 @@
 # MultiTimer
 
-Project Brief: "ChronoCook" - The Multi-Timer & Workflow App
+Project Brief: "Parallel Timers" - The Multi-Timer & Workflow App
 1. Project Overview & Vision
 The Problem: Standard phone timers are inadequate for any complex, multi-step process. Cooking a large meal, conducting a lab experiment, or managing a darkroom photography session requires juggling multiple concurrent and sequential timings. Existing solutions are often clunky, unreliable, or have a poor user experience.
 
-The Solution: "ChronoCook" is a beautifully designed, highly intuitive, and reliable multi-timer application built for mobile-first. It allows users to run multiple named, color-coded timers simultaneously. Its core strength lies in its "at-a-glance" dashboard and its ability to save routines as templates, transforming it from a simple utility into an essential workflow tool.
+The Solution: "Parallel Timers" is a beautifully designed, highly intuitive, and reliable multi-timer application built for mobile-first. It allows users to run multiple named, color-coded timers simultaneously. Its core strength lies in its "at-a-glance" dashboard and its ability to save routines as templates, transforming it from a simple utility into an essential workflow tool.
 
 Target Audience:
 
