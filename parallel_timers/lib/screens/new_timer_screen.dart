@@ -1,7 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
-
 
 class NewTimerScreen extends ConsumerStatefulWidget {
   const NewTimerScreen({super.key});
@@ -16,6 +17,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   int _minutes = 0;
   Color _selectedColor = Colors.orange;
   IconData _selectedIcon = Icons.restaurant;
+  Int64List? _selectedVibrationPattern;
 
   final List<Color> _colors = [
     Colors.red,
@@ -34,6 +36,13 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
     Icons.camera_alt,
     Icons.timer,
   ];
+
+  final Map<String, Int64List?> _vibrationPatterns = {
+    'Default': null,
+    'Short': Int64List.fromList([0, 200, 100, 200]),
+    'Long': Int64List.fromList([0, 500, 200, 500]),
+    'Pulse': Int64List.fromList([0, 100, 100, 100, 100, 100]),
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -165,6 +174,33 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                     )
                     .toList(),
               ),
+              const SizedBox(height: 24),
+              const Text(
+                'Vibration Pattern',
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8.0,
+                children: _vibrationPatterns.keys.map((name) {
+                  final pattern = _vibrationPatterns[name];
+                  final isSelected = _selectedVibrationPattern == pattern;
+                  return ChoiceChip(
+                    label: Text(name),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      if (selected) {
+                        setState(() {
+                          _selectedVibrationPattern = pattern;
+                        });
+                      }
+                    },
+                    backgroundColor: const Color(0xFF252A39),
+                    selectedColor: Colors.blue,
+                    labelStyle: const TextStyle(color: Colors.white),
+                  );
+                }).toList(),
+              ),
               const Spacer(),
               SizedBox(
                 width: double.infinity,
@@ -193,11 +229,12 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   void _saveTimer() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-ref.read(timerNotifierProvider.notifier).addTimer(
+      ref.read(timerNotifierProvider.notifier).addTimer(
             name: _name,
             duration: Duration(minutes: _minutes),
             color: _selectedColor,
             icon: _selectedIcon,
+            vibrationPattern: _selectedVibrationPattern,
             isRunning: true,
           );
       Navigator.of(context).pop();
