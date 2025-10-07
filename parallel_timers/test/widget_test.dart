@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,7 +13,12 @@ class MockNotificationService implements NotificationService {
   Future<void> init() async {}
 
   @override
-  Future<void> showNotification({required int id, required String title, required String body}) async {}
+  Future<void> showNotification({
+    required int id,
+    required String title,
+    required String body,
+    Int64List? vibrationPattern,
+  }) async {}
 }
 
 void main() {

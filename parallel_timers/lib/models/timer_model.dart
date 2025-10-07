@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 @immutable
 class TimerModel {
@@ -9,7 +10,7 @@ class TimerModel {
   final bool isRunning;
   final Color color;
   final IconData icon;
-  final Stopwatch stopwatch;
+  final Int64List? vibrationPattern;
 
   const TimerModel({
     required this.id,
@@ -19,7 +20,7 @@ class TimerModel {
     required this.isRunning,
     required this.color,
     required this.icon,
-    required this.stopwatch,
+    this.vibrationPattern,
   });
 
   TimerModel copyWith({
@@ -30,7 +31,7 @@ class TimerModel {
     bool? isRunning,
     Color? color,
     IconData? icon,
-    Stopwatch? stopwatch,
+    Int64List? vibrationPattern,
   }) {
     return TimerModel(
       id: id ?? this.id,
@@ -40,7 +41,7 @@ class TimerModel {
       isRunning: isRunning ?? this.isRunning,
       color: color ?? this.color,
       icon: icon ?? this.icon,
-      stopwatch: stopwatch ?? this.stopwatch,
+      vibrationPattern: vibrationPattern ?? this.vibrationPattern,
     );
   }
 }

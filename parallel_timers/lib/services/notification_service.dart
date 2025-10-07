@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
@@ -24,8 +26,9 @@ class NotificationService {
     required int id,
     required String title,
     required String body,
+    Int64List? vibrationPattern,
   }) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'parallel_timers_channel',
       'Timer Notifications',
@@ -33,9 +36,10 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
       showWhen: false,
+      vibrationPattern: vibrationPattern,
     );
 
-    const NotificationDetails platformChannelSpecifics =
+    final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
     await _notificationsPlugin.show(
