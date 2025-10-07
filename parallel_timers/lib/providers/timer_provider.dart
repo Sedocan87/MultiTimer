@@ -10,6 +10,7 @@ part 'timer_provider.g.dart';
 const _uuid = Uuid();
 
 @riverpod
+@Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier {
   final Map<String, Timer> _activeTimers = {};
 
@@ -38,6 +39,7 @@ class TimerNotifier extends _$TimerNotifier {
       color: color,
       icon: icon,
       isRunning: false, // Start as not running, then start if needed
+      stopwatch: Stopwatch(),
     );
     state = [...state, newTimer];
     if (isRunning) {
@@ -60,13 +62,18 @@ class TimerNotifier extends _$TimerNotifier {
 
     _activeTimers[timerId]?.cancel();
 
-    _activeTimers[timerId] = Timer.periodic(const Duration(seconds: 1), (ticker) {
+    _activeTimers[timerId] = Timer.periodic(const Duration(seconds: 1), (
+      ticker,
+    ) {
       // Use a try-catch block to handle cases where the timer is removed while the ticker is active
       try {
         final currentTimer = state.firstWhere((t) => t.id == timerId);
 
         if (currentTimer.remainingTime.inSeconds > 0) {
-          final newRemainingTime = currentTimer.remainingTime - const Duration(seconds: 1);
+          final newRemainingTime =
+              currentTimer.duration -
+              currentTimer.stopwatch.elapsed -
+              const Duration(seconds: 1);
           state = [
             for (final t in state)
               if (t.id == timerId)
@@ -81,11 +88,13 @@ class TimerNotifier extends _$TimerNotifier {
             for (final t in state)
               if (t.id == timerId) t.copyWith(isRunning: false) else t,
           ];
-          ref.read(notificationServiceProvider).showNotification(
-            id: timerId.hashCode,
-            title: 'Timer Finished!',
-            body: 'Your timer "${currentTimer.name}" is done.',
-          );
+          ref
+              .read(notificationServiceProvider)
+              .showNotification(
+                id: timerId.hashCode,
+                title: 'Timer Finished!',
+                body: 'Your timer "${currentTimer.name}" is done.',
+              );
         }
       } catch (e) {
         // Timer was likely removed, so cancel the ticker
@@ -93,11 +102,17 @@ class TimerNotifier extends _$TimerNotifier {
         _activeTimers.remove(timerId);
       }
     });
+    state[timerIndex].stopwatch.start();
   }
 
   void pauseTimer(String timerId) {
     _activeTimers[timerId]?.cancel();
     _activeTimers.remove(timerId);
+
+    final timerIndex = state.indexWhere((t) => t.id == timerId);
+    if (timerIndex != -1) {
+      state[timerIndex].stopwatch.stop();
+    }
 
     state = [
       for (final t in state)
@@ -108,6 +123,10 @@ class TimerNotifier extends _$TimerNotifier {
   void removeTimer(String timerId) {
     _activeTimers[timerId]?.cancel();
     _activeTimers.remove(timerId);
+    final timerIndex = state.indexWhere((t) => t.id == timerId);
+    if (timerIndex != -1) {
+      state[timerIndex].stopwatch.stop();
+    }
     state = state.where((timer) => timer.id != timerId).toList();
   }
 }

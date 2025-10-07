@@ -17,7 +17,7 @@ class TimerCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timerNotifier = ref.read(timerProvider.notifier);
+    final timerNotifier = ref.read(timerNotifierProvider.notifier);
     final progress = timer.duration.inSeconds > 0
         ? timer.remainingTime.inSeconds / timer.duration.inSeconds
         : 0.0;

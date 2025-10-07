@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
 
+@immutable
 class TimerModel {
   final String id;
   final String name;
   final Duration duration;
-  Duration remainingTime;
-  bool isRunning;
+  final Duration remainingTime;
+  final bool isRunning;
   final Color color;
   final IconData icon;
+  final Stopwatch stopwatch;
 
-  TimerModel({
+  const TimerModel({
     required this.id,
     required this.name,
     required this.duration,
     required this.remainingTime,
-    this.isRunning = false,
+    required this.isRunning,
     required this.color,
     required this.icon,
+    required this.stopwatch,
   });
 
   TimerModel copyWith({
@@ -27,6 +30,7 @@ class TimerModel {
     bool? isRunning,
     Color? color,
     IconData? icon,
+    Stopwatch? stopwatch,
   }) {
     return TimerModel(
       id: id ?? this.id,
@@ -36,6 +40,7 @@ class TimerModel {
       isRunning: isRunning ?? this.isRunning,
       color: color ?? this.color,
       icon: icon ?? this.icon,
+      stopwatch: stopwatch ?? this.stopwatch,
     );
   }
 }

@@ -1,26 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'timer_provider.dart';
+part of 'template_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$timerNotifierHash() => r'b62aecfbd9a47074ce481738cc37a523b06734c2';
+String _$templateNotifierHash() => r'c18229c4f57139c83e4d384f2f32bf7a53d1fd53';
 
-/// See also [TimerNotifier].
-@ProviderFor(TimerNotifier)
-final timerNotifierProvider =
-    AutoDisposeNotifierProvider<TimerNotifier, List<TimerModel>>.internal(
-      TimerNotifier.new,
-      name: r'timerNotifierProvider',
+/// See also [TemplateNotifier].
+@ProviderFor(TemplateNotifier)
+final templateNotifierProvider =
+    AutoDisposeNotifierProvider<TemplateNotifier, List<TimerTemplate>>.internal(
+      TemplateNotifier.new,
+      name: r'templateNotifierProvider',
       debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
           ? null
-          : _$timerNotifierHash,
+          : _$templateNotifierHash,
       dependencies: null,
       allTransitiveDependencies: null,
     );
 
-typedef _$TimerNotifier = AutoDisposeNotifier<List<TimerModel>>;
+typedef _$TemplateNotifier = AutoDisposeNotifier<List<TimerTemplate>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

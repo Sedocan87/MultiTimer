@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
 import 'package:parallel_timers/screens/new_timer_screen.dart';
+import 'package:parallel_timers/screens/templates_screen.dart';
 import 'package:parallel_timers/widgets/banner_ad_widget.dart';
 import 'package:parallel_timers/widgets/timer_card.dart';
 
@@ -10,7 +11,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timers = ref.watch(timerProvider);
+    final timers = ref.watch(timerNotifierProvider);
     final runningTimers = timers.where((timer) => timer.isRunning).length;
 
     return Scaffold(
@@ -81,7 +82,13 @@ class HomeScreen extends ConsumerWidget {
         ],
         currentIndex: 0,
         onTap: (index) {
-          // Handle navigation later
+          if (index == 1) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const TemplatesScreen(),
+              ),
+            );
+          }
         },
       ),
     );
