@@ -27,16 +27,22 @@ class TimerNotifier extends _$TimerNotifier {
     required String name,
     required Duration duration,
     required Color color,
+    required IconData icon,
+    bool isRunning = false,
   }) {
     final newTimer = TimerModel(
       id: _uuid.v4(),
       name: name,
-      totalDuration: duration,
+      duration: duration,
       remainingTime: duration,
       color: color,
-      status: TimerStatus.initial,
+      icon: icon,
+      isRunning: false, // Start as not running, then start if needed
     );
     state = [...state, newTimer];
+    if (isRunning) {
+      startTimer(newTimer.id);
+    }
   }
 
   void startTimer(String timerId) {
@@ -44,33 +50,47 @@ class TimerNotifier extends _$TimerNotifier {
     if (timerIndex == -1) return;
 
     final timer = state[timerIndex];
-    if (timer.status == TimerStatus.running) return;
+    if (timer.isRunning) return;
+
+    // Set isRunning to true immediately
+    state = [
+      for (final t in state)
+        if (t.id == timerId) t.copyWith(isRunning: true) else t,
+    ];
 
     _activeTimers[timerId]?.cancel();
 
     _activeTimers[timerId] = Timer.periodic(const Duration(seconds: 1), (ticker) {
-      final currentTimer = state.firstWhere((t) => t.id == timerId);
-      if (currentTimer.remainingTime.inSeconds > 0) {
-        final newRemainingTime = currentTimer.remainingTime - const Duration(seconds: 1);
-        state = [
-          for (final t in state)
-            if (t.id == timerId)
-              t.copyWith(remainingTime: newRemainingTime, status: TimerStatus.running)
-            else
-              t,
-        ];
-      } else {
+      // Use a try-catch block to handle cases where the timer is removed while the ticker is active
+      try {
+        final currentTimer = state.firstWhere((t) => t.id == timerId);
+
+        if (currentTimer.remainingTime.inSeconds > 0) {
+          final newRemainingTime = currentTimer.remainingTime - const Duration(seconds: 1);
+          state = [
+            for (final t in state)
+              if (t.id == timerId)
+                t.copyWith(remainingTime: newRemainingTime)
+              else
+                t,
+          ];
+        } else {
+          ticker.cancel();
+          _activeTimers.remove(timerId);
+          state = [
+            for (final t in state)
+              if (t.id == timerId) t.copyWith(isRunning: false) else t,
+          ];
+          ref.read(notificationServiceProvider).showNotification(
+            id: timerId.hashCode,
+            title: 'Timer Finished!',
+            body: 'Your timer "${currentTimer.name}" is done.',
+          );
+        }
+      } catch (e) {
+        // Timer was likely removed, so cancel the ticker
         ticker.cancel();
         _activeTimers.remove(timerId);
-        state = [
-          for (final t in state)
-            if (t.id == timerId) t.copyWith(status: TimerStatus.finished) else t,
-        ];
-        ref.read(notificationServiceProvider).showNotification(
-          id: timerId.hashCode,
-          title: 'Timer Finished!',
-          body: 'Your timer "${currentTimer.name}" is done.',
-        );
       }
     });
   }
@@ -81,21 +101,7 @@ class TimerNotifier extends _$TimerNotifier {
 
     state = [
       for (final t in state)
-        if (t.id == timerId) t.copyWith(status: TimerStatus.paused) else t,
-    ];
-  }
-
-  void resetTimer(String timerId) {
-    _activeTimers[timerId]?.cancel();
-    _activeTimers.remove(timerId);
-
-    final timerIndex = state.indexWhere((t) => t.id == timerId);
-    if (timerIndex == -1) return;
-
-    final originalDuration = state[timerIndex].totalDuration;
-    state = [
-        for (final t in state)
-            if (t.id == timerId) t.copyWith(remainingTime: originalDuration, status: TimerStatus.initial) else t,
+        if (t.id == timerId) t.copyWith(isRunning: false) else t,
     ];
   }
 
