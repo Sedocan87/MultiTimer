@@ -10,65 +10,91 @@ class TimerCard extends ConsumerWidget {
 
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
     final minutes = twoDigits(duration.inMinutes.remainder(60));
     final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$hours:$minutes:$seconds";
+    return "$minutes:$seconds";
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timerNotifier = ref.read(timerProvider.notifier);
+    final progress = timer.duration.inSeconds > 0
+        ? timer.remainingTime.inSeconds / timer.duration.inSeconds
+        : 0.0;
 
-    return Card(
-      color: timer.color.withAlpha((255 * 0.8).round()),
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              timer.name,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2A3B),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: timer.color,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 10),
-            Text(
-              _formatDuration(timer.remainingTime),
-              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Icon(timer.icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  icon: Icon(timer.status == TimerStatus.running ? Icons.pause : Icons.play_arrow),
-                  onPressed: () {
-                    if (timer.status == TimerStatus.running) {
-                      timerNotifier.pauseTimer(timer.id);
-                    } else {
-                      timerNotifier.startTimer(timer.id);
-                    }
-                  },
-                  color: Colors.white,
-                  iconSize: 30,
+                Text(
+                  timer.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () => timerNotifier.resetTimer(timer.id),
-                  color: Colors.white,
-                  iconSize: 30,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => timerNotifier.removeTimer(timer.id),
-                  color: Colors.white,
-                  iconSize: 30,
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: LinearProgressIndicator(
+                        value: 1 - progress, // Invert progress to show time elapsed
+                        backgroundColor: Colors.grey[800],
+                        valueColor: AlwaysStoppedAnimation<Color>(timer.color),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      _formatDuration(timer.remainingTime),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 16),
+          IconButton(
+            icon: Icon(timer.isRunning ? Icons.pause : Icons.play_arrow),
+            onPressed: () {
+              if (timer.isRunning) {
+                timerNotifier.pauseTimer(timer.id);
+              } else {
+                timerNotifier.startTimer(timer.id);
+              }
+            },
+            color: Colors.white,
+            iconSize: 28,
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => timerNotifier.removeTimer(timer.id),
+            color: Colors.white,
+            iconSize: 28,
+          ),
+        ],
       ),
     );
   }

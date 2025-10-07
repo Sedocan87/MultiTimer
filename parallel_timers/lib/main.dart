@@ -36,7 +36,21 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Parallel Timers',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF121B2A),
+        primaryColor: const Color(0xFF121B2A),
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFF3D82F5),
+          secondary: Color(0xFF3D82F5),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF121B2A),
+          elevation: 0,
+        ),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white),
+        ),
       ),
       home: const HomeScreen(),
     );

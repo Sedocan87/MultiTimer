@@ -1,39 +1,41 @@
 import 'package:flutter/material.dart';
 
-enum TimerStatus { initial, running, paused, finished }
-
 class TimerModel {
   final String id;
   final String name;
-  final Duration totalDuration;
-  final Duration remainingTime;
+  final Duration duration;
+  Duration remainingTime;
+  bool isRunning;
   final Color color;
-  final TimerStatus status;
+  final IconData icon;
 
   TimerModel({
     required this.id,
     required this.name,
-    required this.totalDuration,
+    required this.duration,
     required this.remainingTime,
+    this.isRunning = false,
     required this.color,
-    this.status = TimerStatus.initial,
+    required this.icon,
   });
 
   TimerModel copyWith({
     String? id,
     String? name,
-    Duration? totalDuration,
+    Duration? duration,
     Duration? remainingTime,
+    bool? isRunning,
     Color? color,
-    TimerStatus? status,
+    IconData? icon,
   }) {
     return TimerModel(
       id: id ?? this.id,
       name: name ?? this.name,
-      totalDuration: totalDuration ?? this.totalDuration,
+      duration: duration ?? this.duration,
       remainingTime: remainingTime ?? this.remainingTime,
+      isRunning: isRunning ?? this.isRunning,
       color: color ?? this.color,
-      status: status ?? this.status,
+      icon: icon ?? this.icon,
     );
   }
 }
