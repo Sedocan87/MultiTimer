@@ -1,25 +1,26 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/models/timer_model.dart';
 import 'package:parallel_timers/providers/notification_provider.dart';
-import 'package:parallel_timers/services/notification_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
+
+part 'timer_provider.g.dart';
 
 const _uuid = Uuid();
 
-class TimerNotifier extends StateNotifier<List<TimerModel>> {
-  final NotificationService _notificationService;
-  TimerNotifier(this._notificationService) : super([]);
-
+@riverpod
+class TimerNotifier extends _$TimerNotifier {
   final Map<String, Timer> _activeTimers = {};
 
   @override
-  void dispose() {
-    for (var timer in _activeTimers.values) {
-      timer.cancel();
-    }
-    super.dispose();
+  List<TimerModel> build() {
+    ref.onDispose(() {
+      for (var timer in _activeTimers.values) {
+        timer.cancel();
+      }
+    });
+    return [];
   }
 
   void addTimer({
@@ -65,7 +66,7 @@ class TimerNotifier extends StateNotifier<List<TimerModel>> {
           for (final t in state)
             if (t.id == timerId) t.copyWith(status: TimerStatus.finished) else t,
         ];
-        _notificationService.showNotification(
+        ref.read(notificationServiceProvider).showNotification(
           id: timerId.hashCode,
           title: 'Timer Finished!',
           body: 'Your timer "${currentTimer.name}" is done.',
@@ -104,12 +105,3 @@ class TimerNotifier extends StateNotifier<List<TimerModel>> {
     state = state.where((timer) => timer.id != timerId).toList();
   }
 }
-
-final timerProvider = StateNotifierProvider<TimerNotifier, List<TimerModel>>((ref) {
-  final notificationService = ref.watch(notificationServiceProvider);
-  final notifier = TimerNotifier(notificationService);
-  ref.onDispose(() {
-    notifier.dispose();
-  });
-  return notifier;
-});

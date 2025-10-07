@@ -21,7 +21,7 @@ class TimerCard extends ConsumerWidget {
     final timerNotifier = ref.read(timerProvider.notifier);
 
     return Card(
-      color: timer.color.withOpacity(0.8),
+      color: timer.color.withAlpha((255 * 0.8).round()),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16.0),

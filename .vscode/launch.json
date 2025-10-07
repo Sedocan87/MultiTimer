@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "parallel_timers",
+            "cwd": "parallel_timers",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "parallel_timers (profile mode)",
+            "cwd": "parallel_timers",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "parallel_timers (release mode)",
+            "cwd": "parallel_timers",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
