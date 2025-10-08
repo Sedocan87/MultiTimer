@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:parallel_timers/models/template_model.dart';
+
 import 'package:parallel_timers/providers/template_provider.dart';
 import '../models/timer_model.dart';
 import '../models/sequence_model.dart';
@@ -63,20 +63,22 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
           ),
           TextButton(
             onPressed: () {
-              ref.read(sequenceNotifierProvider.notifier).deleteSequence(sequence.id);
+              ref
+                  .read(sequenceNotifierProvider.notifier)
+                  .deleteSequence(sequence.id);
               Navigator.pop(context);
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
   }
 
-  void _showCreateSequenceDialog(BuildContext context, List<TimerModel> availableTimers) {
+  void _showCreateSequenceDialog(
+    BuildContext context,
+    List<TimerModel> availableTimers,
+  ) {
     setState(() {
       _name = null;
       _selectedTimers.clear();
@@ -129,79 +131,85 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                       style: TextStyle(color: Colors.red),
                     )
                   else
-                    ...availableTimers.map((timer) => CheckboxListTile(
-                          title: Text(
-                            timer.name,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          subtitle: Text(
-                            '${timer.duration.inMinutes} minutes',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          value: _selectedTimers.any((t) => t.id == timer.id),
-                          onChanged: (bool? value) {
-                            setState(() {
-                              if (value == true) {
-                                _selectedTimers.add(timer);
-                              } else {
-                                _selectedTimers.removeWhere((t) => t.id == timer.id);
-                              }
-                            });
-                          },
-                          activeColor: Colors.blue,
-                          checkColor: Colors.white,
-                        )),
+                    ...availableTimers.map(
+                      (timer) => CheckboxListTile(
+                        title: Text(
+                          timer.name,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          '${timer.duration.inMinutes} minutes',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        value: _selectedTimers.any((t) => t.id == timer.id),
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value == true) {
+                              _selectedTimers.add(timer);
+                            } else {
+                              _selectedTimers.removeWhere(
+                                (t) => t.id == timer.id,
+                              );
+                            }
+                          });
+                        },
+                        activeColor: Colors.blue,
+                        checkColor: Colors.white,
+                      ),
+                    ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Color:',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                  const Text('Color:', style: TextStyle(color: Colors.grey)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _colors.map((color) => GestureDetector(
-                      onTap: () => setState(() => _selectedColor = color),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: color == _selectedColor
-                              ? Border.all(color: Colors.white, width: 2)
-                              : null,
-                        ),
-                      ),
-                    )).toList(),
+                    children: _colors
+                        .map(
+                          (color) => GestureDetector(
+                            onTap: () => setState(() => _selectedColor = color),
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: color == _selectedColor
+                                    ? Border.all(color: Colors.white, width: 2)
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Icon:',
-                    style: TextStyle(color: Colors.grey),
-                  ),
+                  const Text('Icon:', style: TextStyle(color: Colors.grey)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _icons.map((icon) => GestureDetector(
-                      onTap: () => setState(() => _selectedIcon = icon),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: icon == _selectedIcon
-                              ? Colors.blue.withOpacity(0.3)
-                              : null,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          icon,
-                          color: icon == _selectedIcon
-                              ? Colors.white
-                              : Colors.grey,
-                        ),
-                      ),
-                    )).toList(),
+                    children: _icons
+                        .map(
+                          (icon) => GestureDetector(
+                            onTap: () => setState(() => _selectedIcon = icon),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: icon == _selectedIcon
+                                    ? Colors.blue.withAlpha(76)
+                                    : null,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                icon,
+                                color: icon == _selectedIcon
+                                    ? Colors.white
+                                    : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
                   ),
                 ],
               ),
@@ -226,7 +234,9 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                     return;
                   }
                   if (_name != null) {
-                    ref.read(sequenceNotifierProvider.notifier).addSequence(
+                    ref
+                        .read(sequenceNotifierProvider.notifier)
+                        .addSequence(
                           name: _name!,
                           timers: List.from(_selectedTimers),
                           color: _selectedColor,
@@ -236,10 +246,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                   }
                 }
               },
-              child: const Text(
-                'Create',
-                style: TextStyle(color: Colors.blue),
-              ),
+              child: const Text('Create', style: TextStyle(color: Colors.blue)),
             ),
           ],
         ),
@@ -252,15 +259,17 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
     final sequences = ref.watch(sequenceNotifierProvider);
     final availableTemplates = ref.watch(templateNotifierProvider);
     final availableTimers = availableTemplates
-        .map((template) => TimerModel(
-              id: template.id,
-              name: template.name,
-              duration: Duration(minutes: template.duration),
-              remainingTime: Duration(minutes: template.duration),
-              isRunning: false,
-              color: template.color,
-              icon: template.icon,
-            ))
+        .map(
+          (template) => TimerModel(
+            id: template.id,
+            name: template.name,
+            duration: Duration(minutes: template.duration),
+            remainingTime: Duration(minutes: template.duration),
+            isRunning: false,
+            color: template.color,
+            icon: template.icon,
+          ),
+        )
         .toList();
 
     return Scaffold(
@@ -275,7 +284,8 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () => _showCreateSequenceDialog(context, availableTimers),
+            onPressed: () =>
+                _showCreateSequenceDialog(context, availableTimers),
           ),
         ],
       ),
@@ -304,10 +314,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                     const SizedBox(height: 8),
                     const Text(
                       'Create a sequence of timers that run one after another',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                      ),
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -317,9 +324,13 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                       ),
-                      onPressed: () => _showCreateSequenceDialog(context, availableTimers),
+                      onPressed: () =>
+                          _showCreateSequenceDialog(context, availableTimers),
                     ),
                   ],
                 ),
@@ -364,7 +375,10 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                         children: [
                           if (!sequence.isRunning)
                             IconButton(
-                              icon: const Icon(Icons.play_arrow, color: Colors.green),
+                              icon: const Icon(
+                                Icons.play_arrow,
+                                color: Colors.green,
+                              ),
                               onPressed: () {
                                 ref
                                     .read(sequenceNotifierProvider.notifier)

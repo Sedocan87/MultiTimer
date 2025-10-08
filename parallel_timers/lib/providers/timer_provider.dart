@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:parallel_timers/models/sequence_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
@@ -20,8 +19,10 @@ class TimerNotifier extends _$TimerNotifier {
   @override
   List<TimerModel> build() {
     _timerService = TimerService();
-    _timerService.start();
-    _timerService.messages.listen(_handleIsolateMessage);
+    Future.microtask(() async {
+      await _timerService.start();
+      _timerService.messages.listen(_handleIsolateMessage);
+    });
 
     ref.onDispose(() {
       _timerService.dispose();
@@ -41,7 +42,7 @@ class TimerNotifier extends _$TimerNotifier {
             if (t.id == timerId)
               t.copyWith(remainingTime: Duration(seconds: remainingTime))
             else
-              t
+              t,
         ];
       } else {
         _handleTimerCompletion(currentTimer);
@@ -64,11 +65,14 @@ class TimerNotifier extends _$TimerNotifier {
       icon: sequence.icon,
       isSequence: true,
       sequenceId: sequence.id,
-      isRunning: false,
+      isRunning: true,
     );
 
     state = [...state, newTimer];
-    startTimer(newTimer.id);
+    _timerService.addTimer({
+      'id': newTimer.id,
+      'remainingTime': newTimer.remainingTime.inSeconds,
+    });
   }
 
   void addTimer({
@@ -91,9 +95,15 @@ class TimerNotifier extends _$TimerNotifier {
       isRunning: false,
       onComplete: onComplete,
     );
-    state = [...state, newTimer];
+    state = [
+      ...state,
+      isRunning ? newTimer.copyWith(isRunning: true) : newTimer,
+    ];
     if (isRunning) {
-      startTimer(newTimer.id);
+      _timerService.addTimer({
+        'id': newTimer.id,
+        'remainingTime': newTimer.remainingTime.inSeconds,
+      });
     }
   }
 
@@ -104,7 +114,7 @@ class TimerNotifier extends _$TimerNotifier {
     final timer = state[timerIndex];
     state = [
       for (final t in state)
-        if (t.id == timerId) t.copyWith(isRunning: true) else t
+        if (t.id == timerId) t.copyWith(isRunning: true) else t,
     ];
     _timerService.addTimer({
       'id': timer.id,
@@ -135,8 +145,9 @@ class TimerNotifier extends _$TimerNotifier {
         .onSequenceTimerCompleted(sequenceId);
 
     final updatedSequences = ref.read(sequenceNotifierProvider);
-    final updatedSequence =
-        updatedSequences.firstWhere((s) => s.id == sequenceId);
+    final updatedSequence = updatedSequences.firstWhere(
+      (s) => s.id == sequenceId,
+    );
 
     if (updatedSequence.isRunning) {
       final nextTimerInfo =
@@ -148,7 +159,7 @@ class TimerNotifier extends _$TimerNotifier {
       );
       state = [
         for (final t in state)
-          if (t.id == completedTimer.id) updatedTimerModel else t
+          if (t.id == completedTimer.id) updatedTimerModel else t,
       ];
       startTimer(completedTimer.id);
     } else {
@@ -158,9 +169,7 @@ class TimerNotifier extends _$TimerNotifier {
         duration: updatedSequence.totalDuration,
         completedAt: DateTime.now(),
       );
-      ref
-          .read(timerHistoryNotifierProvider.notifier)
-          .addTimerHistory(history);
+      ref.read(timerHistoryNotifierProvider.notifier).addTimerHistory(history);
       removeTimerBySequenceId(sequenceId);
     }
   }
@@ -169,7 +178,7 @@ class TimerNotifier extends _$TimerNotifier {
     _timerService.pauseTimer(timerId);
     state = [
       for (final t in state)
-        if (t.id == timerId) t.copyWith(isRunning: false) else t
+        if (t.id == timerId) t.copyWith(isRunning: false) else t,
     ];
   }
 

@@ -5,7 +5,8 @@ class TimerService {
   Isolate? _isolate;
   SendPort? _sendPort;
   final ReceivePort _receivePort = ReceivePort();
-  final StreamController<Map<String, dynamic>> _controller = StreamController.broadcast();
+  final StreamController<Map<String, dynamic>> _controller =
+      StreamController.broadcast();
 
   Stream<Map<String, dynamic>> get messages => _controller.stream;
 
@@ -48,23 +49,23 @@ void _isolateEntryPoint(SendPort sendPort) {
   final receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
 
-  final _activeTimers = <String, int>{}; // Map<timerId, remainingSeconds>
-  Timer? _ticker;
+  final activeTimers = <String, int>{}; // Map<timerId, remainingSeconds>
+  Timer? ticker;
 
   void startTicker() {
-    if (_ticker != null && _ticker!.isActive) return;
-    _ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_activeTimers.isEmpty) {
-        _ticker?.cancel();
-        _ticker = null;
+    if (ticker != null && ticker!.isActive) return;
+    ticker = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (activeTimers.isEmpty) {
+        ticker?.cancel();
+        ticker = null;
         return;
       }
 
       final List<String> completedTimers = [];
-      _activeTimers.forEach((id, remainingTime) {
+      activeTimers.forEach((id, remainingTime) {
         final newRemainingTime = remainingTime - 1;
         if (newRemainingTime >= 0) {
-          _activeTimers[id] = newRemainingTime;
+          activeTimers[id] = newRemainingTime;
           sendPort.send({'id': id, 'remainingTime': newRemainingTime});
         }
         if (newRemainingTime <= 0) {
@@ -73,7 +74,7 @@ void _isolateEntryPoint(SendPort sendPort) {
       });
 
       for (var id in completedTimers) {
-        _activeTimers.remove(id);
+        activeTimers.remove(id);
       }
     });
   }
@@ -85,19 +86,17 @@ void _isolateEntryPoint(SendPort sendPort) {
         final timerData = message['timer'] as Map<String, dynamic>;
         final id = timerData['id'] as String;
         final remainingTime = timerData['remainingTime'] as int;
-        _activeTimers[id] = remainingTime;
+        activeTimers[id] = remainingTime;
         startTicker();
         break;
       case 'pause':
       case 'remove':
         final id = message['id'] as String;
-        _activeTimers.remove(id);
+        activeTimers.remove(id);
         break;
       case 'dispose':
-        for (var timer in _activeTimers.values) {
-          _ticker?.cancel();
-        }
-        _activeTimers.clear();
+        ticker?.cancel();
+        activeTimers.clear();
         receivePort.close();
         break;
     }
