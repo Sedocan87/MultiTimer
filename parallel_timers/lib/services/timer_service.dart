@@ -90,6 +90,11 @@ void _isolateEntryPoint(SendPort sendPort) {
         startTicker();
         break;
       case 'pause':
+        // For now, pause is treated the same as remove.
+        // This can be changed later to support resume.
+        final id = message['id'] as String;
+        activeTimers.remove(id);
+        break;
       case 'remove':
         final id = message['id'] as String;
         activeTimers.remove(id);

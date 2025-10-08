@@ -161,7 +161,10 @@ class TimerNotifier extends _$TimerNotifier {
         for (final t in state)
           if (t.id == completedTimer.id) updatedTimerModel else t,
       ];
-      startTimer(completedTimer.id);
+      _timerService.addTimer({
+        'id': updatedTimerModel.id,
+        'remainingTime': updatedTimerModel.remainingTime.inSeconds,
+      });
     } else {
       final history = TimerHistory(
         id: updatedSequence.id,
