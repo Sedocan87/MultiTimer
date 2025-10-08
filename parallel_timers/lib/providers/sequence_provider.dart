@@ -31,100 +31,52 @@ class SequenceNotifier extends _$SequenceNotifier {
   }
 
   void startSequence(String sequenceId) {
-    final index = state.indexWhere((seq) => seq.id == sequenceId);
-    if (index == -1) return;
-
-    final sequence = state[index];
+    final sequence = state.firstWhere((s) => s.id == sequenceId);
     if (sequence.timers.isEmpty) return;
 
-    // Start the first timer in the sequence
-    ref
-        .read(timerNotifierProvider.notifier)
-        .addTimer(
-          name: '${sequence.name}: ${sequence.timers[0].name}',
-          duration: sequence.timers[0].duration,
-          color: sequence.color,
-          icon: sequence.icon,
-          isRunning: true,
-          onComplete: () => _continueSequence(sequenceId, 0),
-        );
-
-    // Update sequence state
+    ref.read(timerNotifierProvider.notifier).addTimerFromSequence(sequence);
     state = [
-      for (var i = 0; i < state.length; i++)
-        i == index
-            ? sequence.copyWith(isRunning: true, currentTimerIndex: 0)
-            : state[i],
-    ];
-  }
-
-  void _continueSequence(String sequenceId, int completedIndex) {
-    final index = state.indexWhere((seq) => seq.id == sequenceId);
-    if (index == -1) return;
-
-    final sequence = state[index];
-    final nextIndex = completedIndex + 1;
-
-    if (nextIndex >= sequence.timers.length) {
-      // Sequence completed
-      state = [
-        for (var i = 0; i < state.length; i++)
-          i == index
-              ? sequence.copyWith(isRunning: false, currentTimerIndex: 0)
-              : state[i],
-      ];
-
-      return;
-    }
-
-    // Start the next timer
-    final nextTimer = sequence.timers[nextIndex];
-    ref
-        .read(timerNotifierProvider.notifier)
-        .addTimer(
-          name: '${sequence.name}: ${nextTimer.name}',
-          duration: nextTimer.duration,
-          color: sequence.color,
-          icon: sequence.icon,
-          isRunning: true,
-          onComplete: () => _continueSequence(sequenceId, nextIndex),
-        );
-
-    // Update sequence state
-    state = [
-      for (var i = 0; i < state.length; i++)
-        i == index ? sequence.copyWith(currentTimerIndex: nextIndex) : state[i],
+      for (final s in state)
+        if (s.id == sequenceId) s.copyWith(isRunning: true) else s
     ];
   }
 
   void stopSequence(String sequenceId) {
-    final idx = state.indexWhere((seq) => seq.id == sequenceId);
-    if (idx == -1) return;
-
-    final sequence = state[idx];
-    if (!sequence.isRunning) return;
-
-    // Stop all active timers from this sequence
-    final activeTimers = ref.read(timerNotifierProvider);
-    for (final timer in activeTimers) {
-      if (timer.name.startsWith('${sequence.name}:')) {
-        ref.read(timerNotifierProvider.notifier).removeTimer(timer.id);
-      }
-    }
-
-    // Reset sequence state
+    ref.read(timerNotifierProvider.notifier).removeTimerBySequenceId(sequenceId);
     state = [
-      for (var i = 0; i < state.length; i++)
-        i == idx
-            ? sequence.copyWith(isRunning: false, currentTimerIndex: 0)
-            : state[i],
+      for (final s in state)
+        if (s.id == sequenceId)
+          s.copyWith(isRunning: false, currentTimerIndex: 0)
+        else
+          s
     ];
   }
 
   void deleteSequence(String sequenceId) {
-    // Stop the sequence if it's running
     stopSequence(sequenceId);
-    // Remove from state
     state = state.where((s) => s.id != sequenceId).toList();
+  }
+
+  void onSequenceTimerCompleted(String sequenceId) {
+    final sequence = state.firstWhere((s) => s.id == sequenceId);
+    final nextIndex = sequence.currentTimerIndex + 1;
+
+    if (nextIndex >= sequence.timers.length) {
+      // Sequence finished
+      state = [
+        for (final s in state)
+          if (s.id == sequenceId)
+            s.copyWith(isRunning: false, currentTimerIndex: 0)
+          else
+            s
+      ];
+    } else {
+      // Move to next timer
+      state = [
+        for (final s in state)
+          if (s.id == sequenceId) s.copyWith(currentTimerIndex: nextIndex) else s
+      ];
+      // The timer provider will start the next timer
+    }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:parallel_timers/models/sequence_model.dart';
 import 'package:parallel_timers/models/timer_model.dart';
+import 'package:parallel_timers/providers/sequence_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
 
 class TimerCard extends ConsumerWidget {
@@ -18,9 +20,27 @@ class TimerCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timerNotifier = ref.read(timerNotifierProvider.notifier);
+    final sequence = timer.isSequence
+        ? ref.watch(sequenceNotifierProvider).firstWhere((s) => s.id == timer.sequenceId)
+        : null;
+
     final progress = timer.duration.inSeconds > 0
         ? timer.remainingTime.inSeconds / timer.duration.inSeconds
         : 0.0;
+
+    final currentStepName = sequence != null &&
+            sequence.timers.isNotEmpty &&
+            sequence.currentTimerIndex < sequence.timers.length
+        ? sequence.timers[sequence.currentTimerIndex].name
+        : null;
+
+    Duration totalRemainingDuration = Duration.zero;
+    if (sequence != null) {
+      totalRemainingDuration += timer.remainingTime;
+      for (var i = sequence.currentTimerIndex + 1; i < sequence.timers.length; i++) {
+        totalRemainingDuration += sequence.timers[i].duration;
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -52,12 +72,20 @@ class TimerCard extends ConsumerWidget {
                     color: Colors.white,
                   ),
                 ),
+                if (currentStepName != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Step: $currentStepName',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: LinearProgressIndicator(
-                        value: 1 - progress, // Invert progress to show time elapsed
+                        value: 1 - progress,
                         backgroundColor: Colors.grey[800],
                         valueColor: AlwaysStoppedAnimation<Color>(timer.color),
                       ),
@@ -65,13 +93,17 @@ class TimerCard extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Text(
                       _formatDuration(timer.remainingTime),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ],
                 ),
+                if (sequence != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Total: ${_formatDuration(totalRemainingDuration)}',
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  )
+                ]
               ],
             ),
           ),
@@ -90,7 +122,13 @@ class TimerCard extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.close),
-            onPressed: () => timerNotifier.removeTimer(timer.id),
+            onPressed: () {
+              if (timer.isSequence) {
+                ref.read(sequenceNotifierProvider.notifier).stopSequence(timer.sequenceId!);
+              } else {
+                timerNotifier.removeTimer(timer.id);
+              }
+            },
             color: Colors.white,
             iconSize: 28,
           ),
