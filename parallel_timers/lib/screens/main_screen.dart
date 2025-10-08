@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parallel_timers/screens/home_screen.dart';
 import 'package:parallel_timers/screens/templates_screen.dart';
 import 'package:parallel_timers/screens/sequence_screen.dart';
+import 'package:parallel_timers/screens/stopwatch_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -26,6 +27,7 @@ class _MainScreenState extends State<MainScreen> {
     HomeScreen(),
     TemplatesScreen(),
     SequenceScreen(),
+    StopwatchScreen(),
   ];
 
   void switchToTab(int index) {
@@ -65,6 +67,11 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.playlist_play, color: Colors.grey),
             selectedIcon: Icon(Icons.playlist_play, color: Colors.blue),
             label: 'Sequences',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.watch, color: Colors.grey),
+            selectedIcon: Icon(Icons.watch, color: Colors.blue),
+            label: 'Stopwatch',
           ),
         ],
       ),
