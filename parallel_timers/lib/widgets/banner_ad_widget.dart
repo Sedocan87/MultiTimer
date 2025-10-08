@@ -1,27 +1,30 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:parallel_timers/services/ad_service.dart';
 
-class BannerAdWidget extends StatefulWidget {
+class BannerAdWidget extends ConsumerStatefulWidget {
   const BannerAdWidget({super.key});
 
   @override
-  State<BannerAdWidget> createState() => _BannerAdWidgetState();
+  ConsumerState<BannerAdWidget> createState() => _BannerAdWidgetState();
 }
 
-class _BannerAdWidgetState extends State<BannerAdWidget> {
+class _BannerAdWidgetState extends ConsumerState<BannerAdWidget> {
   BannerAd? _bannerAd;
-  final AdService _adService = AdService();
 
   @override
   void initState() {
     super.initState();
     if (!kIsWeb) {
-      _adService.loadBannerAd(onAdLoaded: (ad) {
-        setState(() {
-          _bannerAd = ad;
-        });
+      final adService = ref.read(adServiceProvider);
+      adService.loadBannerAd(onAdLoaded: (ad) {
+        if (mounted) {
+          setState(() {
+            _bannerAd = ad;
+          });
+        }
       });
     }
   }
