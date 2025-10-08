@@ -2,9 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:parallel_timers/providers/notification_provider.dart';
-import 'package:parallel_timers/screens/home_screen.dart';
-import 'package:parallel_timers/services/notification_service.dart';
+import 'package:parallel_timers/screens/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,16 +12,9 @@ void main() async {
     await MobileAds.instance.initialize();
   }
 
-  // Create and initialize the notification service
-  final notificationService = NotificationService();
-  await notificationService.init();
-
   runApp(
-    ProviderScope(
-      overrides: [
-        notificationServiceProvider.overrideWithValue(notificationService),
-      ],
-      child: const MyApp(),
+    const ProviderScope(
+      child: MyApp(),
     ),
   );
 }
@@ -52,7 +43,7 @@ class MyApp extends StatelessWidget {
           bodyMedium: TextStyle(color: Colors.white),
         ),
       ),
-      home: const HomeScreen(),
+      home: const MainScreen(),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/template_provider.dart';
 import '../providers/timer_provider.dart';
+import 'main_screen.dart';
 
 class TemplatesScreen extends ConsumerWidget {
   const TemplatesScreen({super.key});
@@ -55,7 +56,9 @@ class TemplatesScreen extends ConsumerWidget {
                   final template = categoryTemplates[templateIndex];
                   return GestureDetector(
                     onTap: () {
-ref.read(timerNotifierProvider.notifier).addTimer(
+                      ref
+                          .read(timerNotifierProvider.notifier)
+                          .addTimer(
                             name: template.name,
                             duration: Duration(minutes: template.duration),
                             color: template.color,
@@ -68,6 +71,7 @@ ref.read(timerNotifierProvider.notifier).addTimer(
                           duration: const Duration(seconds: 2),
                         ),
                       );
+                      MainScreen.switchToHomeTab(context);
                     },
                     child: Container(
                       decoration: BoxDecoration(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
 import 'package:parallel_timers/screens/new_timer_screen.dart';
-import 'package:parallel_timers/screens/templates_screen.dart';
 import 'package:parallel_timers/widgets/banner_ad_widget.dart';
 import 'package:parallel_timers/widgets/timer_card.dart';
 
@@ -15,6 +14,7 @@ class HomeScreen extends ConsumerWidget {
     final runningTimers = timers.where((timer) => timer.isRunning).length;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF1A1F2E),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,28 +68,6 @@ class HomeScreen extends ConsumerWidget {
             const BannerAdWidget(),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.timer),
-            label: 'Timers',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.edit),
-            label: 'Templates',
-          ),
-        ],
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const TemplatesScreen(),
-              ),
-            );
-          }
-        },
       ),
     );
   }

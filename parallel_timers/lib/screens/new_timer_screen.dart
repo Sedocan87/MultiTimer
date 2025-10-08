@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
@@ -17,7 +15,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   int _minutes = 0;
   Color _selectedColor = Colors.orange;
   IconData _selectedIcon = Icons.restaurant;
-  Int64List? _selectedVibrationPattern;
+  List<int>? _selectedVibrationPattern;
 
   final List<Color> _colors = [
     Colors.red,
@@ -37,11 +35,11 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
     Icons.timer,
   ];
 
-  final Map<String, Int64List?> _vibrationPatterns = {
+  final Map<String, List<int>?> _vibrationPatterns = {
     'Default': null,
-    'Short': Int64List.fromList([0, 200, 100, 200]),
-    'Long': Int64List.fromList([0, 500, 200, 500]),
-    'Pulse': Int64List.fromList([0, 100, 100, 100, 100, 100]),
+    'Short': [0, 200, 100, 200],
+    'Long': [0, 500, 200, 500],
+    'Pulse': [0, 100, 100, 100, 100, 100],
   };
 
   @override

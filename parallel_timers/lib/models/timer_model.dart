@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
 
-@immutable
+typedef TimerCompleteCallback = void Function();
+
 class TimerModel {
+  final TimerCompleteCallback? onComplete;
   final String id;
   final String name;
   final Duration duration;
@@ -10,7 +11,7 @@ class TimerModel {
   final bool isRunning;
   final Color color;
   final IconData icon;
-  final Int64List? vibrationPattern;
+  final List<int>? vibrationPattern;
 
   const TimerModel({
     required this.id,
@@ -21,6 +22,7 @@ class TimerModel {
     required this.color,
     required this.icon,
     this.vibrationPattern,
+    this.onComplete,
   });
 
   TimerModel copyWith({
@@ -31,7 +33,8 @@ class TimerModel {
     bool? isRunning,
     Color? color,
     IconData? icon,
-    Int64List? vibrationPattern,
+    List<int>? vibrationPattern,
+    TimerCompleteCallback? onComplete,
   }) {
     return TimerModel(
       id: id ?? this.id,
@@ -42,6 +45,7 @@ class TimerModel {
       color: color ?? this.color,
       icon: icon ?? this.icon,
       vibrationPattern: vibrationPattern ?? this.vibrationPattern,
+      onComplete: onComplete ?? this.onComplete,
     );
   }
 }

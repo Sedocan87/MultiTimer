@@ -1,11 +1,9 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parallel_timers/main.dart';
 import 'package:parallel_timers/services/notification_service.dart';
-import 'package:parallel_timers/providers/notification_provider.dart';
+
 
 // A mock notification service to use in tests
 class MockNotificationService implements NotificationService {
@@ -17,7 +15,7 @@ class MockNotificationService implements NotificationService {
     required int id,
     required String title,
     required String body,
-    Int64List? vibrationPattern,
+    List<int>? vibrationPattern,
   }) async {}
 }
 
@@ -26,10 +24,6 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          // Override the notification service with a mock version
-          notificationServiceProvider.overrideWithValue(MockNotificationService()),
-        ],
         child: const MyApp(),
       ),
     );
