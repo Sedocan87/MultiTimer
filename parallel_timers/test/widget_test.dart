@@ -1,28 +1,16 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:parallel_timers/main.dart';
 import 'package:parallel_timers/models/timer_history.dart';
-import 'package:parallel_timers/services/notification_service.dart';
+import 'package:parallel_timers/services/ad_service.dart';
+import 'package:parallel_timers/widgets/timer_card.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-// A mock notification service to use in tests
-class MockNotificationService implements NotificationService {
-  @override
-  Future<void> init() async {}
-
-  @override
-  Future<void> showNotification({
-    required int id,
-    required String title,
-    required String body,
-    List<int>? vibrationPattern,
-  }) async {}
-}
+import 'mocks/mock_ad_service.dart';
 
 class FakePathProviderPlatform extends Fake
     with MockPlatformInterfaceMixin
@@ -38,7 +26,9 @@ void main() {
   setUpAll(() async {
     PathProviderPlatform.instance = FakePathProviderPlatform();
     await Hive.initFlutter('test');
-    Hive.registerAdapter(TimerHistoryAdapter());
+    if (!Hive.isAdapterRegistered(TimerHistoryAdapter().typeId)) {
+      Hive.registerAdapter(TimerHistoryAdapter());
+    }
   });
 
   tearDownAll(() async {
@@ -46,24 +36,46 @@ void main() {
   });
 
   testWidgets('HomeScreen smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MyApp(),
+      ProviderScope(
+        overrides: [adServiceProvider.overrideWithValue(MockAdService())],
+        child: const MyApp(),
       ),
     );
 
-    // Verify that the new header is displayed.
     expect(find.text('Active Timers'), findsOneWidget);
-
-    // Verify that the "add" icon button is displayed in the header.
     expect(find.widgetWithIcon(IconButton, Icons.add), findsOneWidget);
-
-    // Verify that the bottom navigation bar is displayed.
     expect(find.byType(NavigationBar), findsOneWidget);
-
-    // Verify that the "Timers" and "Templates" labels are present.
     expect(find.text('Timers'), findsOneWidget);
     expect(find.text('Templates'), findsOneWidget);
+  });
+
+  testWidgets('Timer creation and countdown', (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [adServiceProvider.overrideWithValue(MockAdService())],
+          child: const MyApp(),
+        ),
+      );
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.add));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const Key('timerName_text_field')), 'Test Timer');
+      await tester.enterText(find.byKey(const Key('duration_text_field')), '1');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+      await tester.pump();
+
+      final timerCardFinder = find.widgetWithText(TimerCard, 'Test Timer');
+      expect(timerCardFinder, findsOneWidget);
+      expect(find.descendant(of: timerCardFinder, matching: find.text('01:00')), findsOneWidget);
+
+      await Future.delayed(const Duration(seconds: 2));
+      await tester.pump();
+
+      expect(find.descendant(of: timerCardFinder, matching: find.text('00:58')), findsOneWidget);
+    });
   });
 }

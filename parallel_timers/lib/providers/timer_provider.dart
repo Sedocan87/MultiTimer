@@ -5,6 +5,7 @@ import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/models/timer_model.dart';
 import 'package:parallel_timers/providers/sequence_provider.dart';
 import 'package:parallel_timers/providers/timer_history_provider.dart';
+import 'package:parallel_timers/services/timer_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,16 +15,40 @@ const _uuid = Uuid();
 
 @Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier {
-  final Map<String, Timer> _activeTimers = {};
+  late final TimerService _timerService;
 
   @override
   List<TimerModel> build() {
+    _timerService = TimerService();
+    _timerService.start();
+    _timerService.messages.listen(_handleIsolateMessage);
+
     ref.onDispose(() {
-      for (var timer in _activeTimers.values) {
-        timer.cancel();
-      }
+      _timerService.dispose();
     });
     return [];
+  }
+
+  void _handleIsolateMessage(Map<String, dynamic> message) {
+    final timerId = message['id'] as String;
+    final remainingTime = message['remainingTime'] as int;
+
+    try {
+      final currentTimer = state.firstWhere((t) => t.id == timerId);
+      if (remainingTime > 0) {
+        state = [
+          for (final t in state)
+            if (t.id == timerId)
+              t.copyWith(remainingTime: Duration(seconds: remainingTime))
+            else
+              t
+        ];
+      } else {
+        _handleTimerCompletion(currentTimer);
+      }
+    } catch (e) {
+      // Timer might have been removed, do nothing
+    }
   }
 
   void addTimerFromSequence(TimerSequence sequence) {
@@ -76,37 +101,14 @@ class TimerNotifier extends _$TimerNotifier {
     final timerIndex = state.indexWhere((t) => t.id == timerId);
     if (timerIndex == -1 || state[timerIndex].isRunning) return;
 
+    final timer = state[timerIndex];
     state = [
       for (final t in state)
         if (t.id == timerId) t.copyWith(isRunning: true) else t
     ];
-    _startTicker(timerId);
-  }
-
-  void _startTicker(String timerId) {
-    _activeTimers[timerId]?.cancel();
-    _activeTimers[timerId] =
-        Timer.periodic(const Duration(seconds: 1), (ticker) {
-      try {
-        final currentTimer = state.firstWhere((t) => t.id == timerId);
-        if (currentTimer.remainingTime.inSeconds > 0) {
-          state = [
-            for (final t in state)
-              if (t.id == timerId)
-                t.copyWith(
-                    remainingTime: t.remainingTime - const Duration(seconds: 1))
-              else
-                t
-          ];
-        } else {
-          ticker.cancel();
-          _activeTimers.remove(timerId);
-          Future.microtask(() => _handleTimerCompletion(currentTimer));
-        }
-      } catch (e) {
-        ticker.cancel();
-        _activeTimers.remove(timerId);
-      }
+    _timerService.addTimer({
+      'id': timer.id,
+      'remainingTime': timer.remainingTime.inSeconds,
     });
   }
 
@@ -148,7 +150,7 @@ class TimerNotifier extends _$TimerNotifier {
         for (final t in state)
           if (t.id == completedTimer.id) updatedTimerModel else t
       ];
-      _startTicker(completedTimer.id);
+      startTimer(completedTimer.id);
     } else {
       final history = TimerHistory(
         id: updatedSequence.id,
@@ -164,8 +166,7 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void pauseTimer(String timerId) {
-    _activeTimers[timerId]?.cancel();
-    _activeTimers.remove(timerId);
+    _timerService.pauseTimer(timerId);
     state = [
       for (final t in state)
         if (t.id == timerId) t.copyWith(isRunning: false) else t
@@ -173,8 +174,7 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void removeTimer(String timerId) {
-    _activeTimers[timerId]?.cancel();
-    _activeTimers.remove(timerId);
+    _timerService.removeTimer(timerId);
     state = state.where((timer) => timer.id != timerId).toList();
   }
 

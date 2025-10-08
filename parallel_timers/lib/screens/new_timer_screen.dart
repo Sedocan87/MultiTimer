@@ -68,156 +68,160 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Timer Name',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              TextFormField(
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: 'e.g., Pasta, Coffee, Darkroom Timer',
-                  hintStyle: TextStyle(color: Color(0xFF404859)),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF404859)),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Timer Name',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
-                onSaved: (value) => _name = value ?? '',
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Duration',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              TextFormField(
-                style: const TextStyle(color: Colors.white),
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFF404859)),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                ),
-                onSaved: (value) => _minutes = int.tryParse(value ?? '0') ?? 0,
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Color',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: _colors
-                    .map(
-                      (color) => Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedColor = color),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: _selectedColor == color
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Icon',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: _icons
-                    .map(
-                      (icon) => Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedIcon = icon),
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF252A39),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: _selectedIcon == icon
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                            child: Icon(icon, color: Colors.white),
-                          ),
-                        ),
-                      ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Vibration Pattern',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8.0,
-                children: _vibrationPatterns.keys.map((name) {
-                  final pattern = _vibrationPatterns[name];
-                  final isSelected = _selectedVibrationPattern == pattern;
-                  return ChoiceChip(
-                    label: Text(name),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() {
-                          _selectedVibrationPattern = pattern;
-                        });
-                      }
-                    },
-                    backgroundColor: const Color(0xFF252A39),
-                    selectedColor: Colors.blue,
-                    labelStyle: const TextStyle(color: Colors.white),
-                  );
-                }).toList(),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _saveTimer,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                TextFormField(
+                  key: const Key('timerName_text_field'),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: 'e.g., Pasta, Coffee, Darkroom Timer',
+                    hintStyle: TextStyle(color: Color(0xFF404859)),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF404859)),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
                     ),
                   ),
-                  child: const Text(
-                    'Start Timer',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  onSaved: (value) => _name = value ?? '',
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Duration',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                TextFormField(
+                key: const Key('duration_text_field'),
+                  style: const TextStyle(color: Colors.white),
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF404859)),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                  ),
+                  onSaved: (value) => _minutes = int.tryParse(value ?? '0') ?? 0,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Color',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: _colors
+                      .map(
+                        (color) => Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedColor = color),
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: _selectedColor == color
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Icon',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: _icons
+                      .map(
+                        (icon) => Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedIcon = icon),
+                            child: Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF252A39),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _selectedIcon == icon
+                                      ? Colors.white
+                                      : Colors.transparent,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(icon, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Vibration Pattern',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8.0,
+                  children: _vibrationPatterns.keys.map((name) {
+                    final pattern = _vibrationPatterns[name];
+                    final isSelected = _selectedVibrationPattern == pattern;
+                    return ChoiceChip(
+                      label: Text(name),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedVibrationPattern = pattern;
+                          });
+                        }
+                      },
+                      backgroundColor: const Color(0xFF252A39),
+                      selectedColor: Colors.blue,
+                      labelStyle: const TextStyle(color: Colors.white),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _saveTimer,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Start Timer',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
