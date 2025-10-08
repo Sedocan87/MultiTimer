@@ -12,6 +12,8 @@ class TimerModel {
   final Color color;
   final IconData icon;
   final List<int>? vibrationPattern;
+  final bool isSequence;
+  final String? sequenceId;
 
   const TimerModel({
     required this.id,
@@ -23,6 +25,8 @@ class TimerModel {
     required this.icon,
     this.vibrationPattern,
     this.onComplete,
+    this.isSequence = false,
+    this.sequenceId,
   });
 
   TimerModel copyWith({
@@ -35,6 +39,8 @@ class TimerModel {
     IconData? icon,
     List<int>? vibrationPattern,
     TimerCompleteCallback? onComplete,
+    bool? isSequence,
+    String? sequenceId,
   }) {
     return TimerModel(
       id: id ?? this.id,
@@ -46,6 +52,8 @@ class TimerModel {
       icon: icon ?? this.icon,
       vibrationPattern: vibrationPattern ?? this.vibrationPattern,
       onComplete: onComplete ?? this.onComplete,
+      isSequence: isSequence ?? this.isSequence,
+      sequenceId: sequenceId ?? this.sequenceId,
     );
   }
 }

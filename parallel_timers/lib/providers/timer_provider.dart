@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:parallel_timers/models/sequence_model.dart';
 import 'package:parallel_timers/models/timer_model.dart';
-
+import 'package:parallel_timers/providers/sequence_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,6 +24,26 @@ class TimerNotifier extends _$TimerNotifier {
     return [];
   }
 
+  void addTimerFromSequence(TimerSequence sequence) {
+    if (state.any((t) => t.sequenceId == sequence.id)) return;
+
+    final firstTimer = sequence.timers.first;
+    final newTimer = TimerModel(
+      id: _uuid.v4(),
+      name: sequence.name,
+      duration: firstTimer.duration,
+      remainingTime: firstTimer.duration,
+      color: sequence.color,
+      icon: sequence.icon,
+      isSequence: true,
+      sequenceId: sequence.id,
+      isRunning: false,
+    );
+
+    state = [...state, newTimer];
+    startTimer(newTimer.id);
+  }
+
   void addTimer({
     required String name,
     required Duration duration,
@@ -40,7 +61,7 @@ class TimerNotifier extends _$TimerNotifier {
       color: color,
       icon: icon,
       vibrationPattern: vibrationPattern,
-      isRunning: false, // Start as not running, then start if needed
+      isRunning: false,
       onComplete: onComplete,
     );
     state = [...state, newTimer];
@@ -51,65 +72,75 @@ class TimerNotifier extends _$TimerNotifier {
 
   void startTimer(String timerId) {
     final timerIndex = state.indexWhere((t) => t.id == timerId);
-    if (timerIndex == -1) return;
+    if (timerIndex == -1 || state[timerIndex].isRunning) return;
 
-    final timer = state[timerIndex];
-    if (timer.isRunning) return;
-
-    // Set isRunning to true immediately
     state = [
       for (final t in state)
-        if (t.id == timerId) t.copyWith(isRunning: true) else t,
+        if (t.id == timerId) t.copyWith(isRunning: true) else t
     ];
+    _startTicker(timerId);
+  }
 
+  void _startTicker(String timerId) {
     _activeTimers[timerId]?.cancel();
-
-    _activeTimers[timerId] = Timer.periodic(const Duration(seconds: 1), (
-      ticker,
-    ) {
-      // Use a try-catch block to handle cases where the timer is removed while the ticker is active
+    _activeTimers[timerId] = Timer.periodic(const Duration(seconds: 1), (ticker) {
       try {
         final currentTimer = state.firstWhere((t) => t.id == timerId);
-
         if (currentTimer.remainingTime.inSeconds > 0) {
-          final newRemainingTime =
-              currentTimer.remainingTime - const Duration(seconds: 1);
           state = [
             for (final t in state)
               if (t.id == timerId)
-                t.copyWith(remainingTime: newRemainingTime)
+                t.copyWith(remainingTime: t.remainingTime - const Duration(seconds: 1))
               else
-                t,
+                t
           ];
         } else {
           ticker.cancel();
           _activeTimers.remove(timerId);
-
-          // Call onComplete callback if provided
-          currentTimer.onComplete?.call();
-
-          state = [
-            for (final t in state)
-              if (t.id == timerId) t.copyWith(isRunning: false) else t,
-          ];
-
-
+          if (currentTimer.isSequence) {
+            _handleSequenceStepCompletion(currentTimer);
+          } else {
+            currentTimer.onComplete?.call();
+            removeTimer(currentTimer.id);
+          }
         }
       } catch (e) {
-        // Timer was likely removed, so cancel the ticker
         ticker.cancel();
         _activeTimers.remove(timerId);
       }
     });
   }
 
+  void _handleSequenceStepCompletion(TimerModel completedTimer) {
+    final sequenceId = completedTimer.sequenceId!;
+    ref.read(sequenceNotifierProvider.notifier).onSequenceTimerCompleted(sequenceId);
+
+    final updatedSequences = ref.read(sequenceNotifierProvider);
+    final updatedSequence = updatedSequences.firstWhere((s) => s.id == sequenceId);
+
+    if (updatedSequence.isRunning) {
+      final nextTimerInfo = updatedSequence.timers[updatedSequence.currentTimerIndex];
+      final updatedTimerModel = completedTimer.copyWith(
+        duration: nextTimerInfo.duration,
+        remainingTime: nextTimerInfo.duration,
+        isRunning: true,
+      );
+      state = [
+        for (final t in state)
+          if (t.id == completedTimer.id) updatedTimerModel else t
+      ];
+      _startTicker(completedTimer.id);
+    } else {
+      removeTimerBySequenceId(sequenceId);
+    }
+  }
+
   void pauseTimer(String timerId) {
     _activeTimers[timerId]?.cancel();
     _activeTimers.remove(timerId);
-
     state = [
       for (final t in state)
-        if (t.id == timerId) t.copyWith(isRunning: false) else t,
+        if (t.id == timerId) t.copyWith(isRunning: false) else t
     ];
   }
 
@@ -117,5 +148,14 @@ class TimerNotifier extends _$TimerNotifier {
     _activeTimers[timerId]?.cancel();
     _activeTimers.remove(timerId);
     state = state.where((timer) => timer.id != timerId).toList();
+  }
+
+  void removeTimerBySequenceId(String sequenceId) {
+    try {
+      final timer = state.firstWhere((t) => t.sequenceId == sequenceId);
+      removeTimer(timer.id);
+    } catch (e) {
+      // Timer not found, do nothing
+    }
   }
 }

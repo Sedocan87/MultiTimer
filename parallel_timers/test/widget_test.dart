@@ -35,7 +35,7 @@ void main() {
     expect(find.widgetWithIcon(IconButton, Icons.add), findsOneWidget);
 
     // Verify that the bottom navigation bar is displayed.
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
 
     // Verify that the "Timers" and "Templates" labels are present.
     expect(find.text('Timers'), findsOneWidget);

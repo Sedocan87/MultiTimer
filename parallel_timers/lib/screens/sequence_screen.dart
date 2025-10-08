@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:parallel_timers/models/template_model.dart';
+import 'package:parallel_timers/providers/template_provider.dart';
 import '../models/timer_model.dart';
 import '../models/sequence_model.dart';
 import '../providers/sequence_provider.dart';
-import '../providers/timer_provider.dart';
 
 class SequenceScreen extends ConsumerStatefulWidget {
   const SequenceScreen({super.key});
@@ -137,13 +138,13 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                             '${timer.duration.inMinutes} minutes',
                             style: const TextStyle(color: Colors.grey),
                           ),
-                          value: _selectedTimers.contains(timer),
+                          value: _selectedTimers.any((t) => t.id == timer.id),
                           onChanged: (bool? value) {
                             setState(() {
                               if (value == true) {
                                 _selectedTimers.add(timer);
                               } else {
-                                _selectedTimers.remove(timer);
+                                _selectedTimers.removeWhere((t) => t.id == timer.id);
                               }
                             });
                           },
@@ -245,16 +246,22 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
       ),
     );
   }
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final sequences = ref.watch(sequenceNotifierProvider);
-    final timers = ref.watch(timerNotifierProvider);
+    final availableTemplates = ref.watch(templateNotifierProvider);
+    final availableTimers = availableTemplates
+        .map((template) => TimerModel(
+              id: template.id,
+              name: template.name,
+              duration: Duration(minutes: template.duration),
+              remainingTime: Duration(minutes: template.duration),
+              isRunning: false,
+              color: template.color,
+              icon: template.icon,
+            ))
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1F2E),
@@ -268,7 +275,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () => _showCreateSequenceDialog(context, timers),
+            onPressed: () => _showCreateSequenceDialog(context, availableTimers),
           ),
         ],
       ),
@@ -312,7 +319,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
-                      onPressed: () => _showCreateSequenceDialog(context, timers),
+                      onPressed: () => _showCreateSequenceDialog(context, availableTimers),
                     ),
                   ],
                 ),
@@ -387,197 +394,6 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
               ),
             ),
         ],
-      ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  void _showCreateSequenceDialog(
-    BuildContext context,
-    List<TimerModel> availableTimers,
-  ) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF252A39),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Create New Sequence',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
-                    labelText: 'Sequence Name',
-                    labelStyle: TextStyle(color: Colors.grey),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a name';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => _name = value!,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Select Timers',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ListView.builder(
-                    itemCount: availableTimers.length,
-                    itemBuilder: (context, index) {
-                      final timer = availableTimers[index];
-                      return CheckboxListTile(
-                        title: Text(
-                          timer.name,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        subtitle: Text(
-                          _formatDuration(timer.duration),
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                        value: _selectedTimers.contains(timer),
-                        onChanged: (selected) {
-                          setState(() {
-                            if (selected!) {
-                              _selectedTimers.add(timer);
-                            } else {
-                              _selectedTimers.remove(timer);
-                            }
-                          });
-                        },
-                        activeColor: Colors.blue,
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Color', style: TextStyle(color: Colors.grey)),
-                SizedBox(
-                  height: 50,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: _colors.map((color) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedColor = color),
-                          child: Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: _selectedColor == color
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Icon', style: TextStyle(color: Colors.grey)),
-                SizedBox(
-                  height: 60,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: _icons.map((icon) {
-                      return Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GestureDetector(
-                          onTap: () => setState(() => _selectedIcon = icon),
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1A1F2E),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: _selectedIcon == icon
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                            child: Icon(icon, color: _selectedColor),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate() &&
-                            _selectedTimers.isNotEmpty) {
-                          _formKey.currentState!.save();
-                          ref
-                              .read(sequenceNotifierProvider.notifier)
-                              .addSequence(
-                                name: _name,
-                                timers: _selectedTimers.toList(),
-                                color: _selectedColor,
-                                icon: _selectedIcon,
-                              );
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                      ),
-                      child: const Text('Create'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }
