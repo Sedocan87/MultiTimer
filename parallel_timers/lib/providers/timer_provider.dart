@@ -92,13 +92,10 @@ class TimerNotifier extends _$TimerNotifier {
       color: color,
       icon: icon,
       vibrationPattern: vibrationPattern,
-      isRunning: false,
+      isRunning: isRunning,
       onComplete: onComplete,
     );
-    state = [
-      ...state,
-      isRunning ? newTimer.copyWith(isRunning: true) : newTimer,
-    ];
+    state = [...state, newTimer];
     if (isRunning) {
       _timerService.addTimer({
         'id': newTimer.id,

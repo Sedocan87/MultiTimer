@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:parallel_timers/models/duration_adapter.dart';
 import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/screens/main_screen.dart';
 
@@ -12,6 +13,7 @@ void main() async {
   // Initialize Hive
   await Hive.initFlutter();
   Hive.registerAdapter(TimerHistoryAdapter());
+  Hive.registerAdapter(DurationAdapter());
 
   // Initialize Google Mobile Ads
   if (!kIsWeb) {
