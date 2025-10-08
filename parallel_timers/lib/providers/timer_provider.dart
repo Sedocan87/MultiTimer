@@ -34,9 +34,14 @@ class TimerNotifier extends _$TimerNotifier {
     final timerId = message['id'] as String;
     final remainingTime = message['remainingTime'] as int;
 
-    try {
-      final currentTimer = state.firstWhere((t) => t.id == timerId);
+    // Use indexWhere to safely find the timer without throwing an error
+    final timerIndex = state.indexWhere((t) => t.id == timerId);
+
+    // Check if the timer still exists in our state
+    if (timerIndex != -1) {
+      final currentTimer = state[timerIndex];
       if (remainingTime > 0) {
+        // If the timer is still running, update its remaining time
         state = [
           for (final t in state)
             if (t.id == timerId)
@@ -45,11 +50,11 @@ class TimerNotifier extends _$TimerNotifier {
               t,
         ];
       } else {
+        // If the timer has finished, call the completion handler
         _handleTimerCompletion(currentTimer);
       }
-    } catch (e) {
-      // Timer might have been removed, do nothing
     }
+    // If timerIndex is -1, it means the timer was already removed, so we do nothing.
   }
 
   void addTimerFromSequence(TimerSequence sequence) {
