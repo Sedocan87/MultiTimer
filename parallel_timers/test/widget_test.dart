@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:parallel_timers/main.dart';
+import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/services/notification_service.dart';
-
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 // A mock notification service to use in tests
 class MockNotificationService implements NotificationService {
@@ -19,12 +24,32 @@ class MockNotificationService implements NotificationService {
   }) async {}
 }
 
+class FakePathProviderPlatform extends Fake
+    with MockPlatformInterfaceMixin
+    implements PathProviderPlatform {
+  @override
+  Future<String?> getApplicationDocumentsPath() async {
+    final directory = await Directory.systemTemp.createTemp();
+    return directory.path;
+  }
+}
+
 void main() {
+  setUpAll(() async {
+    PathProviderPlatform.instance = FakePathProviderPlatform();
+    await Hive.initFlutter('test');
+    Hive.registerAdapter(TimerHistoryAdapter());
+  });
+
+  tearDownAll(() async {
+    await Hive.deleteFromDisk();
+  });
+
   testWidgets('HomeScreen smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(
-      ProviderScope(
-        child: const MyApp(),
+      const ProviderScope(
+        child: MyApp(),
       ),
     );
 
