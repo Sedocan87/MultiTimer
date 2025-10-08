@@ -1,14 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 import '../models/template_model.dart';
 
 part 'template_provider.g.dart';
 
-@riverpod
+const _uuid = Uuid();
+
 @Riverpod(keepAlive: true)
 class TemplateNotifier extends _$TemplateNotifier {
+  late final Box<TimerTemplate> _box;
+
   @override
   List<TimerTemplate> build() {
+    _box = Hive.box<TimerTemplate>('templates');
+    if (_box.isEmpty) {
+      _box.addAll(_getPredefinedTemplates());
+    }
+    final templates = _box.values.toList();
+    templates.sort((a, b) => a.order.compareTo(b.order));
+    return templates;
+  }
+
+  List<TimerTemplate> _getPredefinedTemplates() {
     return [
       // Cooking Templates
       TimerTemplate(
@@ -17,7 +32,9 @@ class TemplateNotifier extends _$TemplateNotifier {
         duration: 8,
         color: Colors.orange,
         icon: Icons.restaurant,
-        category: 'Cooking',
+        category: 'cooking',
+        isPredefined: true,
+        order: 0,
       ),
       TimerTemplate(
         id: 'rice',
@@ -25,7 +42,9 @@ class TemplateNotifier extends _$TemplateNotifier {
         duration: 20,
         color: Colors.orange,
         icon: Icons.restaurant,
-        category: 'Cooking',
+        category: 'cooking',
+        isPredefined: true,
+        order: 1,
       ),
       TimerTemplate(
         id: 'eggs',
@@ -33,23 +52,9 @@ class TemplateNotifier extends _$TemplateNotifier {
         duration: 7,
         color: Colors.orange,
         icon: Icons.restaurant,
-        category: 'Cooking',
-      ),
-      TimerTemplate(
-        id: 'pizza',
-        name: 'Pizza',
-        duration: 15,
-        color: Colors.orange,
-        icon: Icons.restaurant,
-        category: 'Cooking',
-      ),
-      TimerTemplate(
-        id: 'chicken',
-        name: 'Chicken',
-        duration: 25,
-        color: Colors.orange,
-        icon: Icons.restaurant,
-        category: 'Cooking',
+        category: 'cooking',
+        isPredefined: true,
+        order: 2,
       ),
       // Beverages
       TimerTemplate(
@@ -58,7 +63,9 @@ class TemplateNotifier extends _$TemplateNotifier {
         duration: 3,
         color: Colors.red,
         icon: Icons.coffee,
-        category: 'Beverages',
+        category: 'beverages',
+        isPredefined: true,
+        order: 0,
       ),
       TimerTemplate(
         id: 'coffee',
@@ -66,107 +73,60 @@ class TemplateNotifier extends _$TemplateNotifier {
         duration: 4,
         color: Colors.red,
         icon: Icons.coffee,
-        category: 'Beverages',
-      ),
-      TimerTemplate(
-        id: 'french_press',
-        name: 'French Press',
-        duration: 4,
-        color: Colors.red,
-        icon: Icons.coffee,
-        category: 'Beverages',
-      ),
-      TimerTemplate(
-        id: 'cold_brew',
-        name: 'Cold Brew',
-        duration: 720, // 12 hours
-        color: Colors.red,
-        icon: Icons.coffee,
-        category: 'Beverages',
-      ),
-      // Photography Templates
-      TimerTemplate(
-        id: 'develop',
-        name: 'Film Development',
-        duration: 11,
-        color: Colors.purple,
-        icon: Icons.camera_alt,
-        category: 'Photography',
-      ),
-      TimerTemplate(
-        id: 'fix',
-        name: 'Film Fixing',
-        duration: 5,
-        color: Colors.purple,
-        icon: Icons.camera_alt,
-        category: 'Photography',
-      ),
-      TimerTemplate(
-        id: 'wash',
-        name: 'Film Washing',
-        duration: 10,
-        color: Colors.purple,
-        icon: Icons.camera_alt,
-        category: 'Photography',
-      ),
-      TimerTemplate(
-        id: 'print_expose',
-        name: 'Print Exposure',
-        duration: 2,
-        color: Colors.purple,
-        icon: Icons.camera_alt,
-        category: 'Photography',
-      ),
-      // Fitness
-      TimerTemplate(
-        id: 'hiit',
-        name: 'HIIT Round',
-        duration: 1,
-        color: Colors.green,
-        icon: Icons.timer,
-        category: 'Fitness',
-      ),
-      TimerTemplate(
-        id: 'plank',
-        name: 'Plank',
-        duration: 1,
-        color: Colors.green,
-        icon: Icons.timer,
-        category: 'Fitness',
-      ),
-      TimerTemplate(
-        id: 'rest',
-        name: 'Rest Period',
-        duration: 2,
-        color: Colors.green,
-        icon: Icons.timer,
-        category: 'Fitness',
-      ),
-      // Study
-      TimerTemplate(
-        id: 'pomodoro',
-        name: 'Pomodoro',
-        duration: 25,
-        color: Colors.blue,
-        icon: Icons.timer,
-        category: 'Study',
-      ),
-      TimerTemplate(
-        id: 'short_break',
-        name: 'Short Break',
-        duration: 5,
-        color: Colors.blue,
-        icon: Icons.timer,
-        category: 'Study',
-      ),
-      TimerTemplate(
-        id: 'long_break',
-        name: 'Long Break',
-        duration: 15,
-        color: Colors.blue,
-        icon: Icons.timer,
-        category: 'Study',
+        category: 'beverages',
+        isPredefined: true,
+        order: 1,
       ),
     ];
+  }
+
+  void addTemplate({
+    required String name,
+    required int duration,
+    required Color color,
+    required IconData icon,
+    required String categoryId,
+  }) {
+    final newTemplate = TimerTemplate(
+      id: _uuid.v4(),
+      name: name,
+      duration: duration,
+      color: color,
+      icon: icon,
+      category: categoryId,
+      order: state.where((t) => t.category == categoryId).length,
+    );
+    _box.put(newTemplate.id, newTemplate);
+    state = [...state, newTemplate];
+  }
+
+  void updateTemplate(TimerTemplate template) {
+    _box.put(template.id, template);
+    state = [
+      for (final t in state)
+        if (t.id == template.id) template else t,
+    ];
+  }
+
+  void deleteTemplate(TimerTemplate template) {
+    _box.delete(template.id);
+    state = state.where((t) => t.id != template.id).toList();
+  }
+
+  void reorderTemplates(String categoryId, int oldIndex, int newIndex) {
+    final templatesInCategory = state.where((t) => t.category == categoryId).toList();
+    if (oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final item = templatesInCategory.removeAt(oldIndex);
+    templatesInCategory.insert(newIndex, item);
+
+    for (int i = 0; i < templatesInCategory.length; i++) {
+      final template = templatesInCategory[i];
+      _box.put(template.id, template.copyWith(order: i));
+    }
+
+    final otherTemplates = state.where((t) => t.category != categoryId).toList();
+    state = [...otherTemplates, ...templatesInCategory]..sort((a, b) => a.order.compareTo(b.order));
   }
 }

@@ -1,4 +1,4 @@
-package com.example.chronocook
+package com.example.parallel_timers
 
 import io.flutter.embedding.android.FlutterActivity
 

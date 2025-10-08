@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:parallel_timers/models/category_model.dart';
+import 'package:parallel_timers/models/color_adapter.dart';
 import 'package:parallel_timers/models/duration_adapter.dart';
+import 'package:parallel_timers/models/icon_data_adapter.dart';
+import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/screens/main_screen.dart';
 
@@ -14,6 +18,13 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(TimerHistoryAdapter());
   Hive.registerAdapter(DurationAdapter());
+  Hive.registerAdapter(TimerTemplateAdapter());
+  Hive.registerAdapter(ColorAdapter());
+  Hive.registerAdapter(IconDataAdapter());
+  Hive.registerAdapter(CategoryModelAdapter());
+  await Hive.openBox<TimerTemplate>('templates');
+  await Hive.openBox<String>('deleted_templates');
+  await Hive.openBox<CategoryModel>('categories');
 
   // Initialize Google Mobile Ads
   if (!kIsWeb) {

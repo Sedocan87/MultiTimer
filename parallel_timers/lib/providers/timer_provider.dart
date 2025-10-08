@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:parallel_timers/models/finished_timer_model.dart';
 import 'package:parallel_timers/models/sequence_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/models/timer_model.dart';
+import 'package:parallel_timers/providers/finished_timer_provider.dart';
 import 'package:parallel_timers/providers/sequence_provider.dart';
 import 'package:parallel_timers/providers/timer_history_provider.dart';
 import 'package:parallel_timers/services/timer_service.dart';
@@ -136,6 +138,13 @@ class TimerNotifier extends _$TimerNotifier {
         completedAt: DateTime.now(),
       );
       ref.read(timerHistoryNotifierProvider.notifier).addTimerHistory(history);
+      final finishedTimer = FinishedTimerModel(
+        timer: completedTimer,
+        finishedAt: DateTime.now(),
+      );
+      ref
+          .read(finishedTimerNotifierProvider.notifier)
+          .addFinishedTimer(finishedTimer);
       removeTimer(completedTimer.id);
     }
   }
@@ -175,6 +184,13 @@ class TimerNotifier extends _$TimerNotifier {
         completedAt: DateTime.now(),
       );
       ref.read(timerHistoryNotifierProvider.notifier).addTimerHistory(history);
+      final finishedTimer = FinishedTimerModel(
+        timer: completedTimer,
+        finishedAt: DateTime.now(),
+      );
+      ref
+          .read(finishedTimerNotifierProvider.notifier)
+          .addFinishedTimer(finishedTimer);
       removeTimerBySequenceId(sequenceId);
     }
   }

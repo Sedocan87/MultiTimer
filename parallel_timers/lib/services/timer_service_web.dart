@@ -12,11 +12,6 @@ class TimerService {
     // No-op for web
   }
 
-  void _handleMessage(dynamic message) {
-    if (message is Map<String, dynamic>) {
-      _controller.add(message);
-    }
-  }
 
   void addTimer(Map<String, dynamic> timerData) {
     final id = timerData['id'] as String;

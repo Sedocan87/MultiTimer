@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:parallel_timers/providers/timer_provider.dart';
 
 class NewTimerScreen extends ConsumerStatefulWidget {
@@ -202,6 +203,8 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                     );
                   }).toList(),
                 ),
+                const SizedBox(height: 24),
+
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
