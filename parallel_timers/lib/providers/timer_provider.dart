@@ -101,27 +101,29 @@ class TimerNotifier extends _$TimerNotifier {
         } else {
           ticker.cancel();
           _activeTimers.remove(timerId);
-          if (currentTimer.isSequence) {
-            _handleSequenceStepCompletion(currentTimer);
-          } else {
-            currentTimer.onComplete?.call();
-            final history = TimerHistory(
-              id: currentTimer.id,
-              name: currentTimer.name,
-              duration: currentTimer.duration,
-              completedAt: DateTime.now(),
-            );
-            ref
-                .read(timerHistoryNotifierProvider.notifier)
-                .addTimerHistory(history);
-            removeTimer(currentTimer.id);
-          }
+          Future.microtask(() => _handleTimerCompletion(currentTimer));
         }
       } catch (e) {
         ticker.cancel();
         _activeTimers.remove(timerId);
       }
     });
+  }
+
+  void _handleTimerCompletion(TimerModel completedTimer) {
+    if (completedTimer.isSequence) {
+      _handleSequenceStepCompletion(completedTimer);
+    } else {
+      completedTimer.onComplete?.call();
+      final history = TimerHistory(
+        id: completedTimer.id,
+        name: completedTimer.name,
+        duration: completedTimer.duration,
+        completedAt: DateTime.now(),
+      );
+      ref.read(timerHistoryNotifierProvider.notifier).addTimerHistory(history);
+      removeTimer(completedTimer.id);
+    }
   }
 
   void _handleSequenceStepCompletion(TimerModel completedTimer) {
