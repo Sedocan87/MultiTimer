@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:parallel_timers/models/sequence_model.dart';
+import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/models/timer_model.dart';
 import 'package:parallel_timers/providers/sequence_provider.dart';
+import 'package:parallel_timers/providers/timer_history_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
@@ -83,14 +85,16 @@ class TimerNotifier extends _$TimerNotifier {
 
   void _startTicker(String timerId) {
     _activeTimers[timerId]?.cancel();
-    _activeTimers[timerId] = Timer.periodic(const Duration(seconds: 1), (ticker) {
+    _activeTimers[timerId] =
+        Timer.periodic(const Duration(seconds: 1), (ticker) {
       try {
         final currentTimer = state.firstWhere((t) => t.id == timerId);
         if (currentTimer.remainingTime.inSeconds > 0) {
           state = [
             for (final t in state)
               if (t.id == timerId)
-                t.copyWith(remainingTime: t.remainingTime - const Duration(seconds: 1))
+                t.copyWith(
+                    remainingTime: t.remainingTime - const Duration(seconds: 1))
               else
                 t
           ];
@@ -101,6 +105,15 @@ class TimerNotifier extends _$TimerNotifier {
             _handleSequenceStepCompletion(currentTimer);
           } else {
             currentTimer.onComplete?.call();
+            final history = TimerHistory(
+              id: currentTimer.id,
+              name: currentTimer.name,
+              duration: currentTimer.duration,
+              completedAt: DateTime.now(),
+            );
+            ref
+                .read(timerHistoryNotifierProvider.notifier)
+                .addTimerHistory(history);
             removeTimer(currentTimer.id);
           }
         }
@@ -113,13 +126,17 @@ class TimerNotifier extends _$TimerNotifier {
 
   void _handleSequenceStepCompletion(TimerModel completedTimer) {
     final sequenceId = completedTimer.sequenceId!;
-    ref.read(sequenceNotifierProvider.notifier).onSequenceTimerCompleted(sequenceId);
+    ref
+        .read(sequenceNotifierProvider.notifier)
+        .onSequenceTimerCompleted(sequenceId);
 
     final updatedSequences = ref.read(sequenceNotifierProvider);
-    final updatedSequence = updatedSequences.firstWhere((s) => s.id == sequenceId);
+    final updatedSequence =
+        updatedSequences.firstWhere((s) => s.id == sequenceId);
 
     if (updatedSequence.isRunning) {
-      final nextTimerInfo = updatedSequence.timers[updatedSequence.currentTimerIndex];
+      final nextTimerInfo =
+          updatedSequence.timers[updatedSequence.currentTimerIndex];
       final updatedTimerModel = completedTimer.copyWith(
         duration: nextTimerInfo.duration,
         remainingTime: nextTimerInfo.duration,
@@ -131,6 +148,15 @@ class TimerNotifier extends _$TimerNotifier {
       ];
       _startTicker(completedTimer.id);
     } else {
+      final history = TimerHistory(
+        id: updatedSequence.id,
+        name: updatedSequence.name,
+        duration: updatedSequence.totalDuration,
+        completedAt: DateTime.now(),
+      );
+      ref
+          .read(timerHistoryNotifierProvider.notifier)
+          .addTimerHistory(history);
       removeTimerBySequenceId(sequenceId);
     }
   }

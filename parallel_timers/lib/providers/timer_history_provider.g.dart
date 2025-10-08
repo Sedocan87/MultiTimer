@@ -1,26 +1,27 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'timer_provider.dart';
+part of 'timer_history_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$timerNotifierHash() => r'eae5c251cafbf63e5d9acd7f82ab076dde9cec84';
+String _$timerHistoryNotifierHash() =>
+    r'90a3c4c8b18f9edb9e383e9d899c70a253410514';
 
-/// See also [TimerNotifier].
-@ProviderFor(TimerNotifier)
-final timerNotifierProvider =
-    NotifierProvider<TimerNotifier, List<TimerModel>>.internal(
-  TimerNotifier.new,
-  name: r'timerNotifierProvider',
+/// See also [TimerHistoryNotifier].
+@ProviderFor(TimerHistoryNotifier)
+final timerHistoryNotifierProvider =
+    AsyncNotifierProvider<TimerHistoryNotifier, List<TimerHistory>>.internal(
+  TimerHistoryNotifier.new,
+  name: r'timerHistoryNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$timerNotifierHash,
+      : _$timerHistoryNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$TimerNotifier = Notifier<List<TimerModel>>;
+typedef _$TimerHistoryNotifier = AsyncNotifier<List<TimerHistory>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
