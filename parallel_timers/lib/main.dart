@@ -5,12 +5,15 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:parallel_timers/models/category_model.dart';
 import 'package:parallel_timers/models/color_adapter.dart';
+import 'package:parallel_timers/models/countdown_model.dart';
 import 'package:parallel_timers/models/duration_adapter.dart';
 import 'package:parallel_timers/models/icon_data_adapter.dart';
 import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/screens/main_screen.dart';
 import 'package:parallel_timers/services/notification_service.dart';
+
+late NotificationService notificationService;
 
 Future<void> _initializeHiveBoxes() async {
   // Open templates box with recovery and data validation
@@ -64,7 +67,7 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     // Initialize Notification Service
-    final notificationService = NotificationService();
+    notificationService = NotificationService();
     await notificationService.init();
 
     // Initialize Hive
@@ -77,6 +80,7 @@ void main() async {
     Hive.registerAdapter(ColorAdapter());
     Hive.registerAdapter(IconDataAdapter());
     Hive.registerAdapter(CategoryModelAdapter());
+    Hive.registerAdapter(CountdownAdapter());
 
     // Open boxes with error handling
     await _initializeHiveBoxes();
@@ -117,7 +121,7 @@ class MyApp extends StatelessWidget {
           secondary: Color(0xFF3D82F5),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF121B2A),
+          backgroundColor: const Color(0xFF121B2A),
           elevation: 0,
         ),
         textTheme: const TextTheme(
