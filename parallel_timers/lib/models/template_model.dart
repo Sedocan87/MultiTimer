@@ -12,6 +12,7 @@ class TimerTemplate extends HiveObject {
   final String name;
 
   @HiveField(2)
+  // Duration in seconds
   final int duration;
 
   @HiveField(3)

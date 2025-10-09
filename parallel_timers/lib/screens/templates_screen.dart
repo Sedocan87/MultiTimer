@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:parallel_timers/models/category_model.dart';
+import 'package:parallel_timers/providers/category_provider.dart';
+import 'package:parallel_timers/widgets/template_menu.dart';
 import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/providers/template_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
@@ -12,7 +15,7 @@ class TemplatesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final templates = ref.watch(templateNotifierProvider);
-    final categories = templates.map((t) => t.category).toSet().toList();
+    final categories = ref.watch(categoryNotifierProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1F2E),
@@ -41,7 +44,7 @@ class TemplatesScreen extends ConsumerWidget {
             ),
           ...categories.map((category) {
             final categoryTemplates = templates
-                .where((t) => t.category == category)
+                .where((t) => t.category == category.id)
                 .toList();
             return _buildCategory(context, ref, category, categoryTemplates);
           }),
@@ -53,7 +56,7 @@ class TemplatesScreen extends ConsumerWidget {
   Widget _buildCategory(
     BuildContext context,
     WidgetRef ref,
-    String category,
+    CategoryModel category,
     List<TimerTemplate> templates,
   ) {
     if (templates.isEmpty) return const SizedBox.shrink();
@@ -74,7 +77,7 @@ class TemplatesScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                category,
+                category.name,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
@@ -96,106 +99,108 @@ class TemplatesScreen extends ConsumerWidget {
           itemCount: templates.length,
           itemBuilder: (context, templateIndex) {
             final template = templates[templateIndex];
-            return GestureDetector(
-              onTap: () {
-                ref
-                    .read(timerNotifierProvider.notifier)
-                    .addTimer(
-                      name: template.name,
-                      duration: Duration(minutes: template.duration),
-                      color: template.color,
-                      icon: template.icon,
-                      isRunning: true,
+            return Builder(
+              builder: (BuildContext context) {
+                return GestureDetector(
+                  onTap: () {
+                    ref.read(timerNotifierProvider.notifier).addTimer(
+                          name: template.name,
+                          duration: Duration(minutes: template.duration),
+                          color: template.color,
+                          icon: template.icon,
+                          isRunning: true,
+                        );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${template.name} timer started'),
+                        duration: const Duration(seconds: 2),
+                      ),
                     );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${template.name} timer started'),
-                    duration: const Duration(seconds: 2),
+                    MainScreen.switchToHomeTab(context);
+                  },
+                  onLongPress: () {
+                    _showTemplateMenu(context, ref, template);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF252A39),
+                          Color.alphaBlend(
+                            template.color.withAlpha((255 * 0.15).round()),
+                            const Color(0xFF252A39),
+                          ),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: template.color.withAlpha((255 * 0.2).round()),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha((255 * 0.2).round()),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: template.color.withAlpha((255 * 0.15).round()),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            template.icon,
+                            color: template.color,
+                            size: 32,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            template.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: template.color.withAlpha((255 * 0.15).round()),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${template.duration} min',
+                            style: TextStyle(
+                              color: template.color,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
-                MainScreen.switchToHomeTab(context);
               },
-              onLongPress: () {
-                _showTemplateMenu(context, ref, template);
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF252A39),
-                      Color.alphaBlend(
-                        template.color.withAlpha((255 * 0.15).round()),
-                        const Color(0xFF252A39),
-                      ),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: template.color.withAlpha((255 * 0.2).round()),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha((255 * 0.2).round()),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: template.color.withAlpha((255 * 0.15).round()),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        template.icon,
-                        color: template.color,
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        template.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: template.color.withAlpha((255 * 0.15).round()),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${template.duration} min',
-                        style: TextStyle(
-                          color: template.color,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             );
           },
         ),
@@ -206,41 +211,22 @@ class TemplatesScreen extends ConsumerWidget {
 
   void _showTemplateMenu(
       BuildContext context, WidgetRef ref, TimerTemplate template) {
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(button.size.bottomRight(Offset.zero),
-            ancestor: overlay),
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu(
+    showModalBottomSheet(
       context: context,
-      position: position,
-      items: [
-        const PopupMenuItem(
-          value: 'edit',
-          child: Text('Edit'),
-        ),
-        const PopupMenuItem(
-          value: 'delete',
-          child: Text('Delete'),
-        ),
-      ],
-    ).then((value) {
-      if (value == 'edit') {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => NewTimerScreen(template: template),
-          ),
-        );
-      } else if (value == 'delete') {
-        ref.read(templateNotifierProvider.notifier).deleteTemplate(template);
-      }
-    });
+      backgroundColor: Colors.transparent,
+      builder: (context) => TemplateMenu(
+        template: template,
+        onEdit: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => NewTimerScreen(template: template),
+            ),
+          );
+        },
+        onDelete: () {
+          ref.read(templateNotifierProvider.notifier).deleteTemplate(template);
+        },
+      ),
+    );
   }
 }

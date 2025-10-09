@@ -6,6 +6,8 @@ import 'package:parallel_timers/providers/category_provider.dart';
 import 'package:parallel_timers/providers/template_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
 
+import 'package:numberpicker/numberpicker.dart';
+
 class NewTimerScreen extends ConsumerStatefulWidget {
   final TimerTemplate? template;
   const NewTimerScreen({super.key, this.template});
@@ -18,6 +20,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   final _formKey = GlobalKey<FormState>();
   String _name = '';
   int _minutes = 0;
+  int _seconds = 0;
   Color _selectedColor = Colors.orange;
   IconData _selectedIcon = Icons.restaurant;
   List<int>? _selectedVibrationPattern;
@@ -30,7 +33,8 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
     if (widget.template != null) {
       final template = widget.template!;
       _name = template.name;
-      _minutes = template.duration;
+      _minutes = template.duration ~/ 60;
+      _seconds = template.duration % 60;
       _selectedColor = template.color;
       _selectedIcon = template.icon;
       _saveAsTemplate = true;
@@ -130,21 +134,29 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                   'Duration',
                   style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
-                TextFormField(
-                  key: const Key('duration_text_field'),
-                  initialValue: _minutes.toString(),
-                  style: const TextStyle(color: Colors.white),
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFF404859)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    NumberPicker(
+                      value: _minutes,
+                      minValue: 0,
+                      maxValue: 99,
+                      onChanged: (value) => setState(() => _minutes = value),
+                      textStyle: const TextStyle(color: Colors.grey),
+                      selectedTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
                     ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
+                    const Text('min', style: TextStyle(color: Colors.white, fontSize: 24)),
+                    const SizedBox(width: 24),
+                    NumberPicker(
+                      value: _seconds,
+                      minValue: 0,
+                      maxValue: 59,
+                      onChanged: (value) => setState(() => _seconds = value),
+                      textStyle: const TextStyle(color: Colors.grey),
+                      selectedTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
                     ),
-                  ),
-                  onSaved: (value) =>
-                      _minutes = int.tryParse(value ?? '0') ?? 0,
+                    const Text('sec', style: TextStyle(color: Colors.white, fontSize: 24)),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -337,11 +349,13 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
         categoryId = '';
       }
 
+      final totalDurationInSeconds = _minutes * 60 + _seconds;
+
       if (widget.template != null) {
         ref.read(templateNotifierProvider.notifier).updateTemplate(
               widget.template!.copyWith(
                 name: _name,
-                duration: _minutes,
+                duration: totalDurationInSeconds,
                 color: _selectedColor,
                 icon: _selectedIcon,
                 category: categoryId,
@@ -351,7 +365,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
         if (_saveAsTemplate) {
           ref.read(templateNotifierProvider.notifier).addTemplate(
                 name: _name,
-                duration: _minutes,
+                duration: totalDurationInSeconds,
                 color: _selectedColor,
                 icon: _selectedIcon,
                 categoryId: categoryId,
@@ -359,7 +373,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
         }
         ref.read(timerNotifierProvider.notifier).addTimer(
               name: _name,
-              duration: Duration(minutes: _minutes),
+              duration: Duration(seconds: totalDurationInSeconds),
               color: _selectedColor,
               icon: _selectedIcon,
               vibrationPattern: _selectedVibrationPattern,

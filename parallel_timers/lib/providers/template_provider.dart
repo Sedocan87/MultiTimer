@@ -50,19 +50,18 @@ class TemplateNotifier extends _$TemplateNotifier {
     state = _getAllTemplates();
   }
 
-  void deleteTemplate(TimerTemplate template) {
-    _box.delete(template.id);
-    state = _getAllTemplates();
-
-    final templatesInCategory =
-        state.where((t) => t.category == template.category);
-    if (templatesInCategory.isEmpty) {
-      ref
-          .read(categoryNotifierProvider.notifier)
-          .deleteCategoryById(template.category);
+    void deleteTemplate(TimerTemplate template) {
+      final categoryId = template.category;
+      _box.delete(template.id);
+      state = _getAllTemplates();
+  
+      final templatesInCategory = state.where((t) => t.category == categoryId);
+      if (templatesInCategory.isEmpty) {
+        ref
+            .read(categoryNotifierProvider.notifier)
+            .deleteCategoryById(categoryId);
+      }
     }
-  }
-
   void reorderTemplates(String categoryId, int oldIndex, int newIndex) {
     final templatesInCategory =
         state.where((t) => t.category == categoryId).toList();
