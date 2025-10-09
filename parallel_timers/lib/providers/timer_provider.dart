@@ -21,7 +21,7 @@ class TimerNotifier extends _$TimerNotifier {
   late final NotificationService _notificationService;
 
   @override
-  List<TimerModel> build() {
+  Map<String, TimerModel> build() {
     _timerService = TimerService();
     _notificationService = NotificationService();
     Future.microtask(() async {
@@ -32,52 +32,38 @@ class TimerNotifier extends _$TimerNotifier {
     ref.onDispose(() {
       _timerService.dispose();
     });
-    return [];
+    return {};
   }
 
   void _handleIsolateMessage(Map<String, dynamic> message) {
+    final timerId = message['id'] as String;
+    if (!state.containsKey(timerId)) return;
+
     if (message.containsKey('completed')) {
-      final timerId = message['id'] as String;
       final timerName = message['name'] as String;
       _notificationService.showNotification(
         id: timerId.hashCode,
         title: 'Timer Finished',
         body: '$timerName has finished.',
       );
-      final timerIndex = state.indexWhere((t) => t.id == timerId);
-      if (timerIndex != -1) {
-        _handleTimerCompletion(state[timerIndex]);
-      }
+      _handleTimerCompletion(state[timerId]!);
     } else {
-      final timerId = message['id'] as String;
       final remainingTime = message['remainingTime'] as int;
-
-      // Use indexWhere to safely find the timer without throwing an error
-      final timerIndex = state.indexWhere((t) => t.id == timerId);
-
-      // Check if the timer still exists in our state
-      if (timerIndex != -1) {
-        final currentTimer = state[timerIndex];
-        if (remainingTime > 0) {
-          // If the timer is still running, update its remaining time
-          state = [
-            for (final t in state)
-              if (t.id == timerId)
-                t.copyWith(remainingTime: Duration(seconds: remainingTime))
-              else
-                t,
-          ];
-        } else {
-          // If the timer has finished, call the completion handler
-          _handleTimerCompletion(currentTimer);
-        }
+      final currentTimer = state[timerId]!;
+      if (remainingTime > 0) {
+        final updatedTimer =
+            currentTimer.copyWith(remainingTime: Duration(seconds: remainingTime));
+        final newState = Map<String, TimerModel>.from(state);
+        newState[timerId] = updatedTimer;
+        state = newState;
+      } else {
+        _handleTimerCompletion(currentTimer);
       }
     }
-    // If timerIndex is -1, it means the timer was already removed, so we do nothing.
   }
 
   void addTimerFromSequence(TimerSequence sequence) {
-    if (state.any((t) => t.sequenceId == sequence.id)) return;
+    if (state.values.any((t) => t.sequenceId == sequence.id)) return;
 
     final firstTimer = sequence.timers.first;
     final newTimer = TimerModel(
@@ -92,7 +78,7 @@ class TimerNotifier extends _$TimerNotifier {
       isRunning: true,
     );
 
-    state = [...state, newTimer];
+    state = {...state, newTimer.id: newTimer};
     _timerService.addTimer({
       'id': newTimer.id,
       'remainingTime': newTimer.remainingTime.inSeconds,
@@ -120,7 +106,7 @@ class TimerNotifier extends _$TimerNotifier {
       isRunning: isRunning,
       onComplete: onComplete,
     );
-    state = [...state, newTimer];
+    state = {...state, newTimer.id: newTimer};
     if (isRunning) {
       _timerService.addTimer({
         'id': newTimer.id,
@@ -131,14 +117,13 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void startTimer(String timerId) {
-    final timerIndex = state.indexWhere((t) => t.id == timerId);
-    if (timerIndex == -1 || state[timerIndex].isRunning) return;
+    if (!state.containsKey(timerId) || state[timerId]!.isRunning) return;
 
-    final timer = state[timerIndex];
-    state = [
-      for (final t in state)
-        if (t.id == timerId) t.copyWith(isRunning: true) else t,
-    ];
+    final timer = state[timerId]!;
+    final updatedTimer = timer.copyWith(isRunning: true);
+    final newState = Map<String, TimerModel>.from(state);
+    newState[timerId] = updatedTimer;
+    state = newState;
     _timerService.addTimer({
       'id': timer.id,
       'remainingTime': timer.remainingTime.inSeconds,
@@ -187,10 +172,7 @@ class TimerNotifier extends _$TimerNotifier {
         remainingTime: nextTimerInfo.duration,
         isRunning: true,
       );
-      state = [
-        for (final t in state)
-          if (t.id == completedTimer.id) updatedTimerModel else t,
-      ];
+      state = {...state, completedTimer.id: updatedTimerModel};
       _timerService.addTimer({
         'id': updatedTimerModel.id,
         'remainingTime': updatedTimerModel.remainingTime.inSeconds,
@@ -215,22 +197,26 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void pauseTimer(String timerId) {
+    if (!state.containsKey(timerId)) return;
     _timerService.pauseTimer(timerId);
-    state = [
-      for (final t in state)
-        if (t.id == timerId) t.copyWith(isRunning: false) else t,
-    ];
+    final timer = state[timerId]!;
+    final updatedTimer = timer.copyWith(isRunning: false);
+    final newState = Map<String, TimerModel>.from(state);
+    newState[timerId] = updatedTimer;
+    state = newState;
   }
 
   void removeTimer(String timerId) {
+    if (!state.containsKey(timerId)) return;
     _timerService.removeTimer(timerId);
-    state = state.where((timer) => timer.id != timerId).toList();
+    state = Map.from(state)..remove(timerId);
   }
 
   void removeTimerBySequenceId(String sequenceId) {
     try {
-      final timer = state.firstWhere((t) => t.sequenceId == sequenceId);
-      removeTimer(timer.id);
+      final entry =
+          state.entries.firstWhere((e) => e.value.sequenceId == sequenceId);
+      removeTimer(entry.key);
     } catch (e) {
       // Timer not found, do nothing
     }

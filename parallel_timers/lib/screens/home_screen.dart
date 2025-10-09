@@ -12,7 +12,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final timers = ref.watch(timerNotifierProvider);
+    final timerMap = ref.watch(timerNotifierProvider);
+    final timers = timerMap.values.toList();
     final runningTimers = timers.where((timer) => timer.isRunning).length;
     final finishedTimers = ref.watch(finishedTimerNotifierProvider);
 
