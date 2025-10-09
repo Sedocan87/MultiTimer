@@ -24,9 +24,6 @@ class TimerTemplate extends HiveObject {
   final String category;
 
   @HiveField(6)
-  final bool isPredefined;
-
-  @HiveField(7)
   final int order;
 
   TimerTemplate({
@@ -36,7 +33,6 @@ class TimerTemplate extends HiveObject {
     required this.color,
     required this.icon,
     required this.category,
-    this.isPredefined = false,
     required this.order,
   });
 
@@ -47,7 +43,6 @@ class TimerTemplate extends HiveObject {
     Color? color,
     IconData? icon,
     String? category,
-    bool? isPredefined,
     int? order,
   }) {
     return TimerTemplate(
@@ -57,7 +52,6 @@ class TimerTemplate extends HiveObject {
       color: color ?? this.color,
       icon: icon ?? this.icon,
       category: category ?? this.category,
-      isPredefined: isPredefined ?? this.isPredefined,
       order: order ?? this.order,
     );
   }

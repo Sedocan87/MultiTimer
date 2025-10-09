@@ -15,69 +15,9 @@ class TemplateNotifier extends _$TemplateNotifier {
   @override
   List<TimerTemplate> build() {
     _box = Hive.box<TimerTemplate>('templates');
-    if (_box.isEmpty) {
-      _box.addAll(_getPredefinedTemplates());
-    }
     final templates = _box.values.toList();
     templates.sort((a, b) => a.order.compareTo(b.order));
     return templates;
-  }
-
-  List<TimerTemplate> _getPredefinedTemplates() {
-    return [
-      // Cooking Templates
-      TimerTemplate(
-        id: 'pasta',
-        name: 'Pasta',
-        duration: 8,
-        color: Colors.orange,
-        icon: Icons.restaurant,
-        category: 'cooking',
-        isPredefined: true,
-        order: 0,
-      ),
-      TimerTemplate(
-        id: 'rice',
-        name: 'Rice',
-        duration: 20,
-        color: Colors.orange,
-        icon: Icons.restaurant,
-        category: 'cooking',
-        isPredefined: true,
-        order: 1,
-      ),
-      TimerTemplate(
-        id: 'eggs',
-        name: 'Boiled Eggs',
-        duration: 7,
-        color: Colors.orange,
-        icon: Icons.restaurant,
-        category: 'cooking',
-        isPredefined: true,
-        order: 2,
-      ),
-      // Beverages
-      TimerTemplate(
-        id: 'tea',
-        name: 'Tea',
-        duration: 3,
-        color: Colors.red,
-        icon: Icons.coffee,
-        category: 'beverages',
-        isPredefined: true,
-        order: 0,
-      ),
-      TimerTemplate(
-        id: 'coffee',
-        name: 'Coffee',
-        duration: 4,
-        color: Colors.red,
-        icon: Icons.coffee,
-        category: 'beverages',
-        isPredefined: true,
-        order: 1,
-      ),
-    ];
   }
 
   void addTemplate({

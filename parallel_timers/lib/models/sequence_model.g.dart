@@ -1,34 +1,34 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'template_model.dart';
+part of 'sequence_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
+class SequenceAdapter extends TypeAdapter<Sequence> {
   @override
-  final int typeId = 4;
+  final int typeId = 1;
 
   @override
-  TimerTemplate read(BinaryReader reader) {
+  Sequence read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return TimerTemplate(
+    return Sequence(
       id: fields[0] as String,
       name: fields[1] as String,
-      duration: fields[2] as int,
-      color: fields[3] as Color,
-      icon: fields[4] as IconData,
-      category: fields[5] as String,
-      order: fields[6] as int,
+      timers: (fields[2] as List).cast<TimerModel>(),
+      icon: fields[3] as IconData,
+      color: fields[4] as Color,
+      isRunning: fields[5] as bool,
+      currentTimerIndex: fields[6] as int,
     );
   }
 
   @override
-  void write(BinaryWriter writer, TimerTemplate obj) {
+  void write(BinaryWriter writer, Sequence obj) {
     writer
       ..writeByte(7)
       ..writeByte(0)
@@ -36,15 +36,15 @@ class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.duration)
+      ..write(obj.timers)
       ..writeByte(3)
-      ..write(obj.color)
-      ..writeByte(4)
       ..write(obj.icon)
+      ..writeByte(4)
+      ..write(obj.color)
       ..writeByte(5)
-      ..write(obj.category)
+      ..write(obj.isRunning)
       ..writeByte(6)
-      ..write(obj.order);
+      ..write(obj.currentTimerIndex);
   }
 
   @override
@@ -53,7 +53,7 @@ class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TimerTemplateAdapter &&
+      other is SequenceAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

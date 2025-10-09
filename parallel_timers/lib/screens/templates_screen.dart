@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/providers/template_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
+import 'package:parallel_timers/screens/edit_template_screen.dart';
 import 'package:parallel_timers/screens/main_screen.dart';
 
 class TemplatesScreen extends ConsumerWidget {
@@ -19,10 +20,29 @@ class TemplatesScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF1A1F2E),
         elevation: 0,
         title: const Text('Templates', style: TextStyle(color: Colors.white)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const EditTemplateScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (templates.isEmpty)
+            const Center(
+              child: Text(
+                'No templates yet. Create one!',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+              ),
+            ),
           ...categories.map((category) {
             final categoryTemplates = templates
                 .where((t) => t.category == category)
@@ -98,6 +118,9 @@ class TemplatesScreen extends ConsumerWidget {
                   ),
                 );
                 MainScreen.switchToHomeTab(context);
+              },
+              onLongPress: () {
+                _showTemplateMenu(context, ref, template);
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -183,5 +206,45 @@ class TemplatesScreen extends ConsumerWidget {
         const SizedBox(height: 24),
       ],
     );
+  }
+
+  void _showTemplateMenu(
+      BuildContext context, WidgetRef ref, TimerTemplate template) {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(Offset.zero, ancestor: overlay),
+        button.localToGlobal(button.size.bottomRight(Offset.zero),
+            ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu(
+      context: context,
+      position: position,
+      items: [
+        const PopupMenuItem(
+          value: 'edit',
+          child: Text('Edit'),
+        ),
+        const PopupMenuItem(
+          value: 'delete',
+          child: Text('Delete'),
+        ),
+      ],
+    ).then((value) {
+      if (value == 'edit') {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => EditTemplateScreen(template: template),
+          ),
+        );
+      } else if (value == 'delete') {
+        ref.read(templateNotifierProvider.notifier).deleteTemplate(template);
+      }
+    });
   }
 }

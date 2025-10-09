@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:parallel_timers/models/sequence_model.dart';
 
 import 'package:parallel_timers/models/timer_model.dart';
 import 'package:parallel_timers/providers/sequence_provider.dart';
@@ -22,16 +23,15 @@ class TimerCard extends ConsumerWidget {
     final timerNotifier = ref.read(timerNotifierProvider.notifier);
     final sequence = timer.isSequence
         ? ref
-              .watch(sequenceNotifierProvider)
-              .firstWhere((s) => s.id == timer.sequenceId)
+            .watch(sequenceNotifierProvider)
+            .firstWhere((s) => s.id == timer.sequenceId)
         : null;
 
     final progress = timer.duration.inSeconds > 0
         ? timer.remainingTime.inSeconds / timer.duration.inSeconds
         : 0.0;
 
-    final currentStepName =
-        sequence != null &&
+    final currentStepName = sequence != null &&
             sequence.timers.isNotEmpty &&
             sequence.currentTimerIndex < sequence.timers.length
         ? sequence.timers[sequence.currentTimerIndex].name
@@ -40,11 +40,9 @@ class TimerCard extends ConsumerWidget {
     Duration totalRemainingDuration = Duration.zero;
     if (sequence != null) {
       totalRemainingDuration += timer.remainingTime;
-      for (
-        var i = sequence.currentTimerIndex + 1;
-        i < sequence.timers.length;
-        i++
-      ) {
+      for (var i = sequence.currentTimerIndex + 1;
+          i < sequence.timers.length;
+          i++) {
         totalRemainingDuration += sequence.timers[i].duration;
       }
     }

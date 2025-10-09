@@ -5,7 +5,7 @@ import 'package:parallel_timers/models/stopwatch_model.dart';
 class StopwatchNotifier extends StateNotifier<StopwatchModel> {
   Timer? _timer;
 
-  StopwatchNotifier() : super(const StopwatchModel());
+  StopwatchNotifier() : super(StopwatchModel());
 
   void start() {
     if (state.isRunning) return;
@@ -23,7 +23,7 @@ class StopwatchNotifier extends StateNotifier<StopwatchModel> {
 
   void reset() {
     _timer?.cancel();
-    state = const StopwatchModel();
+    state = StopwatchModel();
   }
 
   @override
