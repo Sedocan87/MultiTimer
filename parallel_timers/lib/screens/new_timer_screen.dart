@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:parallel_timers/models/template_model.dart';
+import 'package:parallel_timers/providers/template_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
 
 class NewTimerScreen extends ConsumerStatefulWidget {
-  const NewTimerScreen({super.key});
+  final TimerTemplate? template;
+  const NewTimerScreen({super.key, this.template});
 
   @override
   ConsumerState<NewTimerScreen> createState() => _NewTimerScreenState();
@@ -17,6 +19,21 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   Color _selectedColor = Colors.orange;
   IconData _selectedIcon = Icons.restaurant;
   List<int>? _selectedVibrationPattern;
+  bool _saveAsTemplate = false;
+  String _category = 'General';
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.template != null) {
+      _name = widget.template!.name;
+      _minutes = widget.template!.duration;
+      _selectedColor = widget.template!.color;
+      _selectedIcon = widget.template!.icon;
+      _category = widget.template!.category;
+      _saveAsTemplate = true;
+    }
+  }
 
   final List<Color> _colors = [
     Colors.red,
@@ -54,7 +71,8 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: const Text('New Timer', style: TextStyle(color: Colors.white)),
+        title: Text(widget.template == null ? 'New Timer' : 'Edit Template',
+            style: const TextStyle(color: Colors.white)),
         actions: [
           TextButton(
             onPressed: _saveTimer,
@@ -79,6 +97,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                 ),
                 TextFormField(
                   key: const Key('timerName_text_field'),
+                  initialValue: _name,
                   style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     hintText: 'e.g., Pasta, Coffee, Darkroom Timer',
@@ -98,7 +117,8 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                   style: TextStyle(color: Colors.grey, fontSize: 16),
                 ),
                 TextFormField(
-                key: const Key('duration_text_field'),
+                  key: const Key('duration_text_field'),
+                  initialValue: _minutes.toString(),
                   style: const TextStyle(color: Colors.white),
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
@@ -204,7 +224,49 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                   }).toList(),
                 ),
                 const SizedBox(height: 24),
-
+                if (widget.template == null)
+                  SwitchListTile(
+                    title: const Text('Save as template',
+                        style: TextStyle(color: Colors.white)),
+                    value: _saveAsTemplate,
+                    onChanged: (value) {
+                      setState(() {
+                        _saveAsTemplate = value;
+                      });
+                    },
+                    activeColor: Colors.blue,
+                    tileColor: const Color(0xFF252A39),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                if (_saveAsTemplate) ...[
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Category',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                  TextFormField(
+                    initialValue: _category,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      hintText: 'e.g., Cooking, Workout',
+                      hintStyle: TextStyle(color: Color(0xFF404859)),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFF404859)),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                      ),
+                    ),
+                    onSaved: (value) => _category = value ?? 'General',
+                    validator: (value) {
+                      if (_saveAsTemplate && (value == null || value.isEmpty)) {
+                        return 'Please enter a category';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -217,9 +279,10 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Start Timer',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    child: Text(
+                      widget.template == null ? 'Start Timer' : 'Save Template',
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
                 ),
@@ -234,14 +297,35 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   void _saveTimer() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      ref.read(timerNotifierProvider.notifier).addTimer(
-            name: _name,
-            duration: Duration(minutes: _minutes),
-            color: _selectedColor,
-            icon: _selectedIcon,
-            vibrationPattern: _selectedVibrationPattern,
-            isRunning: true,
-          );
+      if (widget.template != null) {
+        ref.read(templateNotifierProvider.notifier).updateTemplate(
+              widget.template!.copyWith(
+                name: _name,
+                duration: _minutes,
+                color: _selectedColor,
+                icon: _selectedIcon,
+                category: _category,
+              ),
+            );
+      } else {
+        if (_saveAsTemplate) {
+          ref.read(templateNotifierProvider.notifier).addTemplate(
+                name: _name,
+                duration: _minutes,
+                color: _selectedColor,
+                icon: _selectedIcon,
+                categoryId: _category,
+              );
+        }
+        ref.read(timerNotifierProvider.notifier).addTimer(
+              name: _name,
+              duration: Duration(minutes: _minutes),
+              color: _selectedColor,
+              icon: _selectedIcon,
+              vibrationPattern: _selectedVibrationPattern,
+              isRunning: true,
+            );
+      }
       Navigator.of(context).pop();
     }
   }

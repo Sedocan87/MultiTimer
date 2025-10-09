@@ -23,14 +23,15 @@ class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
       color: fields[3] as Color,
       icon: fields[4] as IconData,
       category: fields[5] as String,
-      order: fields[6] as int,
+      isPredefined: fields[6] as bool,
+      order: fields[7] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, TimerTemplate obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,6 +45,8 @@ class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
       ..writeByte(5)
       ..write(obj.category)
       ..writeByte(6)
+      ..write(obj.isPredefined)
+      ..writeByte(7)
       ..write(obj.order);
   }
 
