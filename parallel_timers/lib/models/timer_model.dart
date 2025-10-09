@@ -1,21 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+part 'timer_model.g.dart';
 
 typedef TimerCompleteCallback = void Function();
 
-class TimerModel {
-  final TimerCompleteCallback? onComplete;
+@HiveType(typeId: 0)
+class TimerModel extends HiveObject {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String name;
+
+  @HiveField(2)
   final Duration duration;
+
+  @HiveField(3)
   final Duration remainingTime;
+
+  @HiveField(4)
   final bool isRunning;
+
+  @HiveField(5)
   final Color color;
+
+  @HiveField(6)
   final IconData icon;
+
+  @HiveField(7)
   final List<int>? vibrationPattern;
+
+  @HiveField(8)
   final bool isSequence;
+
+  @HiveField(9)
   final String? sequenceId;
 
-  const TimerModel({
+  final TimerCompleteCallback? onComplete;
+
+  TimerModel({
     required this.id,
     required this.name,
     required this.duration,

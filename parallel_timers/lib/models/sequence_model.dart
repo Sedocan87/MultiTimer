@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:parallel_timers/models/timer_model.dart';
 
-class TimerSequence {
+part 'sequence_model.g.dart';
+
+@HiveType(typeId: 1)
+class Sequence extends HiveObject {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String name;
+
+  @HiveField(2)
   final List<TimerModel> timers;
+
+  @HiveField(3)
   final IconData icon;
+
+  @HiveField(4)
   final Color color;
+
+  @HiveField(5)
   final bool isRunning;
+
+  @HiveField(6)
   final int currentTimerIndex;
 
-  const TimerSequence({
+  Sequence({
     required this.id,
     required this.name,
     required this.timers,
@@ -20,7 +37,7 @@ class TimerSequence {
     this.currentTimerIndex = 0,
   });
 
-  TimerSequence copyWith({
+  Sequence copyWith({
     String? id,
     String? name,
     List<TimerModel>? timers,
@@ -29,7 +46,7 @@ class TimerSequence {
     bool? isRunning,
     int? currentTimerIndex,
   }) {
-    return TimerSequence(
+    return Sequence(
       id: id ?? this.id,
       name: name ?? this.name,
       timers: timers ?? this.timers,

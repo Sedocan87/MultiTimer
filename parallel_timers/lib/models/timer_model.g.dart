@@ -1,36 +1,39 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'template_model.dart';
+part of 'timer_model.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
+class TimerModelAdapter extends TypeAdapter<TimerModel> {
   @override
-  final int typeId = 4;
+  final int typeId = 0;
 
   @override
-  TimerTemplate read(BinaryReader reader) {
+  TimerModel read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return TimerTemplate(
+    return TimerModel(
       id: fields[0] as String,
       name: fields[1] as String,
-      duration: fields[2] as int,
-      color: fields[3] as Color,
-      icon: fields[4] as IconData,
-      category: fields[5] as String,
-      order: fields[6] as int,
+      duration: fields[2] as Duration,
+      remainingTime: fields[3] as Duration,
+      isRunning: fields[4] as bool,
+      color: fields[5] as Color,
+      icon: fields[6] as IconData,
+      vibrationPattern: (fields[7] as List?)?.cast<int>(),
+      isSequence: fields[8] as bool,
+      sequenceId: fields[9] as String?,
     );
   }
 
   @override
-  void write(BinaryWriter writer, TimerTemplate obj) {
+  void write(BinaryWriter writer, TimerModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,13 +41,19 @@ class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
       ..writeByte(2)
       ..write(obj.duration)
       ..writeByte(3)
-      ..write(obj.color)
+      ..write(obj.remainingTime)
       ..writeByte(4)
-      ..write(obj.icon)
+      ..write(obj.isRunning)
       ..writeByte(5)
-      ..write(obj.category)
+      ..write(obj.color)
       ..writeByte(6)
-      ..write(obj.order);
+      ..write(obj.icon)
+      ..writeByte(7)
+      ..write(obj.vibrationPattern)
+      ..writeByte(8)
+      ..write(obj.isSequence)
+      ..writeByte(9)
+      ..write(obj.sequenceId);
   }
 
   @override
@@ -53,7 +62,7 @@ class TimerTemplateAdapter extends TypeAdapter<TimerTemplate> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TimerTemplateAdapter &&
+      other is TimerModelAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

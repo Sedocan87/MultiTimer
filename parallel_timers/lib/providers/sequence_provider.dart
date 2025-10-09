@@ -12,7 +12,7 @@ const _uuid = Uuid();
 @Riverpod(keepAlive: true)
 class SequenceNotifier extends _$SequenceNotifier {
   @override
-  List<TimerSequence> build() => [];
+  List<Sequence> build() => [];
 
   void addSequence({
     required String name,
@@ -20,7 +20,7 @@ class SequenceNotifier extends _$SequenceNotifier {
     required Color color,
     required IconData icon,
   }) {
-    final newSequence = TimerSequence(
+    final newSequence = Sequence(
       id: _uuid.v4(),
       name: name,
       timers: timers,
