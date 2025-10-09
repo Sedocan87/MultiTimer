@@ -11,31 +11,89 @@ import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/screens/main_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+Future<void> _initializeHiveBoxes() async {
+  // Open templates box with recovery and data validation
+  try {
+    var box = await Hive.openBox<TimerTemplate>('templates');
 
-  // Initialize Hive
-  await Hive.initFlutter();
-  Hive.registerAdapter(TimerHistoryAdapter());
-  Hive.registerAdapter(DurationAdapter());
-  Hive.registerAdapter(TimerTemplateAdapter());
-  Hive.registerAdapter(ColorAdapter());
-  Hive.registerAdapter(IconDataAdapter());
-  Hive.registerAdapter(CategoryModelAdapter());
-  await Hive.openBox<TimerTemplate>('templates');
-  await Hive.openBox<String>('deleted_templates');
-  await Hive.openBox<CategoryModel>('categories');
+    // Validate existing templates and remove corrupted ones
+    List<String> keysToDelete = [];
+    for (var key in box.keys) {
+      try {
+        var template = box.get(key);
+        if (template == null) {
+          keysToDelete.add(key.toString());
+        }
+      } catch (e) {
+        keysToDelete.add(key.toString());
+        debugPrint('Found corrupted template at key $key: $e');
+      }
+    }
 
-  // Initialize Google Mobile Ads
-  if (!kIsWeb) {
-    await MobileAds.instance.initialize();
+    // Delete corrupted templates
+    if (keysToDelete.isNotEmpty) {
+      debugPrint('Removing ${keysToDelete.length} corrupted templates');
+      await Future.forEach(keysToDelete, (key) async => await box.delete(key));
+    }
+
+    debugPrint(
+      'Templates box opened successfully with ${box.length} valid items',
+    );
+  } catch (e) {
+    debugPrint('Error opening templates box: $e');
+    // If box is corrupted, delete and recreate
+    await Hive.deleteBoxFromDisk('templates');
+    await Hive.openBox<TimerTemplate>('templates');
+    debugPrint('Templates box recreated successfully');
   }
 
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  // Open other boxes with error handling
+  try {
+    await Hive.openBox<String>('deleted_templates');
+    await Hive.openBox<CategoryModel>('categories');
+    debugPrint('All Hive boxes opened successfully');
+  } catch (e) {
+    debugPrint('Error opening additional boxes: $e');
+    rethrow;
+  }
+}
+
+void main() async {
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    // Initialize Hive
+    await Hive.initFlutter();
+
+    // Register all adapters
+    Hive.registerAdapter(TimerHistoryAdapter());
+    Hive.registerAdapter(DurationAdapter());
+    Hive.registerAdapter(TimerTemplateAdapter());
+    Hive.registerAdapter(ColorAdapter());
+    Hive.registerAdapter(IconDataAdapter());
+    Hive.registerAdapter(CategoryModelAdapter());
+
+    // Open boxes with error handling
+    await _initializeHiveBoxes();
+
+    // Initialize Google Mobile Ads with error handling
+    if (!kIsWeb) {
+      try {
+        await MobileAds.instance.initialize();
+      } catch (e) {
+        debugPrint('Failed to initialize Mobile Ads: $e');
+        // Continue app initialization even if ads fail
+      }
+    }
+
+    // Run app inside a try-catch to catch any initialization errors
+    runApp(const ProviderScope(child: MyApp()));
+  } catch (e, stackTrace) {
+    debugPrint('Error during app initialization: $e');
+    debugPrint('Stack trace: $stackTrace');
+    // Rethrow to show error screen instead of black screen
+    rethrow;
+  }
 }
 
 class MyApp extends StatelessWidget {

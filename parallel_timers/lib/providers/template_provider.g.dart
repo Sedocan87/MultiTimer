@@ -6,7 +6,7 @@ part of 'template_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$templateNotifierHash() => r'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0'; // Placeholder hash
+String _$templateNotifierHash() => r'818a6be3d400f774dc6719717768b2d6fdc745b5';
 
 /// See also [TemplateNotifier].
 @ProviderFor(TemplateNotifier)
@@ -22,3 +22,5 @@ final templateNotifierProvider =
 );
 
 typedef _$TemplateNotifier = Notifier<List<TimerTemplate>>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

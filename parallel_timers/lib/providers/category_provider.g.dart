@@ -6,7 +6,7 @@ part of 'category_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$categoryNotifierHash() => r'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0'; // Placeholder hash
+String _$categoryNotifierHash() => r'490fbe50696d45ccd45bb4b9ce18e6e4131a323c';
 
 /// See also [CategoryNotifier].
 @ProviderFor(CategoryNotifier)
@@ -22,3 +22,5 @@ final categoryNotifierProvider =
 );
 
 typedef _$CategoryNotifier = Notifier<List<CategoryModel>>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
