@@ -1,11 +1,18 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:parallel_timers/models/stopwatch_model.dart';
 
 class StopwatchNotifier extends StateNotifier<StopwatchModel> {
   Timer? _timer;
+  late final Box _box;
 
-  StopwatchNotifier() : super(StopwatchModel());
+  StopwatchNotifier() : super(StopwatchModel()) {
+    _box = Hive.box('stopwatch_settings');
+    final colorValue = _box.get('color', defaultValue: Colors.blue.value);
+    state = state.copyWith(color: Color(colorValue));
+  }
 
   void start() {
     if (state.isRunning) return;
@@ -23,7 +30,12 @@ class StopwatchNotifier extends StateNotifier<StopwatchModel> {
 
   void reset() {
     _timer?.cancel();
-    state = StopwatchModel();
+    state = StopwatchModel(color: state.color);
+  }
+
+  void setColor(Color color) {
+    state = state.copyWith(color: color);
+    _box.put('color', color.value);
   }
 
   @override

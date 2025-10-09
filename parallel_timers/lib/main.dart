@@ -54,12 +54,32 @@ Future<void> _initializeHiveBoxes() async {
   // Open other boxes with error handling
   try {
     await Hive.openBox<String>('deleted_templates');
-    await Hive.openBox<CategoryModel>('categories');
-    debugPrint('All Hive boxes opened successfully');
   } catch (e) {
-    debugPrint('Error opening additional boxes: $e');
-    rethrow;
+    debugPrint('Error opening deleted_templates box: $e');
+    await Hive.deleteBoxFromDisk('deleted_templates');
+    await Hive.openBox<String>('deleted_templates');
   }
+  try {
+    await Hive.openBox<CategoryModel>('categories');
+  } catch (e) {
+    debugPrint('Error opening categories box: $e');
+    await Hive.deleteBoxFromDisk('categories');
+    await Hive.openBox<CategoryModel>('categories');
+  }
+  try {
+    await Hive.openBox<Countdown>('countdowns');
+  } catch (e) {
+    debugPrint('Error opening countdowns box: $e');
+    await Hive.deleteBoxFromDisk('countdowns');
+    await Hive.openBox<Countdown>('countdowns');
+    debugPrint('Countdowns box recreated successfully');
+  }
+  try {
+    await Hive.openBox('stopwatch_settings');
+  } catch (e) {
+    debugPrint('Error opening stopwatch_settings box: $e');
+  }
+  debugPrint('All Hive boxes opened successfully');
 }
 
 void main() async {
@@ -100,8 +120,6 @@ void main() async {
   } catch (e, stackTrace) {
     debugPrint('Error during app initialization: $e');
     debugPrint('Stack trace: $stackTrace');
-    // Rethrow to show error screen instead of black screen
-    rethrow;
   }
 }
 
@@ -121,7 +139,7 @@ class MyApp extends StatelessWidget {
           secondary: Color(0xFF3D82F5),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: const Color(0xFF121B2A),
+          backgroundColor: Color(0xFF121B2A),
           elevation: 0,
         ),
         textTheme: const TextTheme(

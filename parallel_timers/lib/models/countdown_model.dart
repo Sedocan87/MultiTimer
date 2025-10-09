@@ -1,12 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
 part 'countdown_model.g.dart';
 
-@HiveType(typeId: 5)
+@HiveType(typeId: 6)
 class Countdown extends HiveObject {
   @HiveField(0)
-  final String id;
+  late String id;
 
   @HiveField(1)
   String name;
@@ -14,5 +15,10 @@ class Countdown extends HiveObject {
   @HiveField(2)
   DateTime targetDate;
 
-  Countdown({required this.name, required this.targetDate}) : id = const Uuid().v4();
+  @HiveField(3)
+  Color? color;
+
+  Countdown({required this.name, required this.targetDate, this.color}) {
+    id = const Uuid().v4();
+  }
 }

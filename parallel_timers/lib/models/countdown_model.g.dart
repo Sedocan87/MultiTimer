@@ -8,7 +8,7 @@ part of 'countdown_model.dart';
 
 class CountdownAdapter extends TypeAdapter<Countdown> {
   @override
-  final int typeId = 5;
+  final int typeId = 6;
 
   @override
   Countdown read(BinaryReader reader) {
@@ -19,19 +19,22 @@ class CountdownAdapter extends TypeAdapter<Countdown> {
     return Countdown(
       name: fields[1] as String,
       targetDate: fields[2] as DateTime,
-    );
+      color: fields[3] as Color?,
+    )..id = fields[0] as String;
   }
 
   @override
   void write(BinaryWriter writer, Countdown obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.targetDate);
+      ..write(obj.targetDate)
+      ..writeByte(3)
+      ..write(obj.color);
   }
 
   @override

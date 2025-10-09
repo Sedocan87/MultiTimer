@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:isolate';
-import 'package:parallel_timers/services/notification_service.dart';
 
 class TimerService {
   Isolate? _isolate;
@@ -52,7 +51,11 @@ void _isolateEntryPoint(SendPort sendPort) {
   final receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
 
-  final activeTimers = <String, Map<String, dynamic>>{}; // Map<timerId, {name: string, remainingTime: int}>
+  final activeTimers =
+      <
+        String,
+        Map<String, dynamic>
+      >{}; // Map<timerId, {name: string, remainingTime: int}>
   Timer? ticker;
 
   void startTicker() {
@@ -74,7 +77,11 @@ void _isolateEntryPoint(SendPort sendPort) {
         }
         if (newRemainingTime <= 0) {
           completedTimers.add(id);
-          sendPort.send({'id': id, 'completed': true, 'name': timerData['name']});
+          sendPort.send({
+            'id': id,
+            'completed': true,
+            'name': timerData['name'],
+          });
         }
       });
 

@@ -343,13 +343,38 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                 itemCount: sequences.length,
                 itemBuilder: (context, index) {
                   final sequence = sequences[index];
-                  return Card(
-                    color: const Color(0xFF252A39),
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF252A39),
+                          Color.alphaBlend(
+                            sequence.color.withAlpha((255 * 0.15).round()),
+                            const Color(0xFF252A39),
+                          ),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: sequence.color.withAlpha((255 * 0.2).round()),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha((255 * 0.2).round()),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
                     child: ListTile(
-                      leading: Icon(sequence.icon, color: sequence.color),
+                      leading: Icon(sequence.icon, color: sequence.color, size: 40),
                       title: Text(
                         sequence.name,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -378,6 +403,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                               icon: const Icon(
                                 Icons.play_arrow,
                                 color: Colors.green,
+                                size: 32,
                               ),
                               onPressed: () {
                                 ref
@@ -387,7 +413,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                             )
                           else
                             IconButton(
-                              icon: const Icon(Icons.stop, color: Colors.red),
+                              icon: const Icon(Icons.stop, color: Colors.red, size: 32),
                               onPressed: () {
                                 ref
                                     .read(sequenceNotifierProvider.notifier)
@@ -395,7 +421,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
                               },
                             ),
                           IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.grey),
+                            icon: const Icon(Icons.delete, color: Colors.grey, size: 32),
                             onPressed: () {
                               _showDeleteConfirmation(context, sequence);
                             },

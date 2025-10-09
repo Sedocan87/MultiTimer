@@ -6,7 +6,7 @@ part of 'countdown_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$countdownNotifierHash() => r'7aad233a5334297aa35f85720e93a98c593b658a';
+String _$countdownNotifierHash() => r'ec171ebc4138782da9f3b297201d703fc02646df';
 
 /// See also [CountdownNotifier].
 @ProviderFor(CountdownNotifier)

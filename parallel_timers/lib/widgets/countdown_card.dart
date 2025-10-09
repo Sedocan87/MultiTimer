@@ -8,8 +8,9 @@ import 'package:parallel_timers/providers/countdown_provider.dart';
 
 class CountdownCard extends ConsumerStatefulWidget {
   final Countdown countdown;
+  final VoidCallback onDelete;
 
-  const CountdownCard({super.key, required this.countdown});
+  const CountdownCard({super.key, required this.countdown, required this.onDelete});
 
   @override
   ConsumerState<CountdownCard> createState() => _CountdownCardState();
@@ -17,7 +18,7 @@ class CountdownCard extends ConsumerStatefulWidget {
 
 class _CountdownCardState extends ConsumerState<CountdownCard> {
   Timer? _timer;
-  late Duration _remainingTime;
+  Duration _remainingTime = Duration.zero;
 
   @override
   void initState() {
@@ -64,54 +65,78 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
 
   @override
   Widget build(BuildContext context) {
+    final color = widget.countdown.color ?? Colors.blue;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E2A3B),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue, // Example color
-              borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF252A39),
+            Color.alphaBlend(
+              color.withAlpha((255 * 0.15).round()),
+              const Color(0xFF252A39),
             ),
-            child: const Icon(Icons.calendar_today, color: Colors.white, size: 28),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: color.withAlpha((255 * 0.2).round()),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha((255 * 0.2).round()),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.countdown.name,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withAlpha((255 * 0.15).round()),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.calendar_today,
+                    color: color,
+                    size: 28,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  _formatDuration(_remainingTime),
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: widget.onDelete,
+                  color: Colors.white,
+                  iconSize: 28,
                 ),
               ],
             ),
-          ),
-          const SizedBox(width: 16),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              ref.read(countdownNotifierProvider.notifier).removeCountdown(widget.countdown.id);
-            },
-            color: Colors.white,
-            iconSize: 28,
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              widget.countdown.name,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _formatDuration(_remainingTime),
+              style: TextStyle(fontSize: 24, color: color, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
       ),
     );
   }

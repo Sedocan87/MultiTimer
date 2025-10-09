@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/providers/finished_timer_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
 import 'package:parallel_timers/screens/new_timer_screen.dart';
+import 'package:parallel_timers/screens/history_screen.dart';
 import 'package:parallel_timers/widgets/banner_ad_widget.dart';
 import 'package:parallel_timers/widgets/finished_timer_card.dart';
 import 'package:parallel_timers/widgets/timer_card.dart';
@@ -18,6 +19,11 @@ class HomeScreen extends ConsumerWidget {
     final finishedTimers = ref.watch(finishedTimerNotifierProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Parallel Timers'),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF1A1F2E),
+      ),
       backgroundColor: const Color(0xFF1A1F2E),
       body: SafeArea(
         child: Column(
@@ -48,11 +54,11 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add, size: 32),
+                    icon: const Icon(Icons.history, size: 32),
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => const NewTimerScreen(),
+                          builder: (context) => const HistoryScreen(),
                         ),
                       );
                     },
@@ -101,6 +107,17 @@ class HomeScreen extends ConsumerWidget {
             ),
             const BannerAdWidget(),
           ],
+        ),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 50.0),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const NewTimerScreen()),
+            );
+          },
+          child: const Icon(Icons.add),
         ),
       ),
     );

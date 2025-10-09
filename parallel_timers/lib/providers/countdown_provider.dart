@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:hive/hive.dart';
 import 'package:parallel_timers/models/countdown_model.dart';
@@ -15,8 +16,10 @@ class CountdownNotifier extends _$CountdownNotifier {
     return _box.values.toList();
   }
 
-  void addCountdown({required String name, required DateTime targetDate}) {
-    final newCountdown = Countdown(name: name, targetDate: targetDate);
+  void addCountdown(
+      {required String name, required DateTime targetDate, required Color color}) {
+    final newCountdown =
+        Countdown(name: name, targetDate: targetDate, color: color);
     _box.put(newCountdown.id, newCountdown);
     state = _box.values.toList();
 

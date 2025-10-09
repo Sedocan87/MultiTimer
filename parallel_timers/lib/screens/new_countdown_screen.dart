@@ -14,6 +14,17 @@ class _NewCountdownScreenState extends ConsumerState<NewCountdownScreen> {
   final _formKey = GlobalKey<FormState>();
   String _name = '';
   DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  Color _selectedColor = Colors.blue;
+
+  final List<Color> _colors = [
+    Colors.red,
+    Colors.orange,
+    Colors.yellow,
+    Colors.green,
+    Colors.blue,
+    Colors.purple,
+    Colors.pink,
+  ];
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -22,31 +33,31 @@ class _NewCountdownScreenState extends ConsumerState<NewCountdownScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
-    if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(_selectedDate),
+    if (pickedDate == null) return;
+
+    if (!context.mounted) return;
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedDate),
+    );
+    if (pickedTime == null) return;
+
+    setState(() {
+      _selectedDate = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
       );
-      if (pickedTime != null) {
-        setState(() {
-          _selectedDate = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
-      }
-    }
+    });
   }
 
   void _saveCountdown() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      ref
-          .read(countdownNotifierProvider.notifier)
-          .addCountdown(name: _name, targetDate: _selectedDate);
+      ref.read(countdownNotifierProvider.notifier).addCountdown(
+          name: _name, targetDate: _selectedDate, color: _selectedColor);
       Navigator.of(context).pop();
     }
   }
@@ -63,15 +74,6 @@ class _NewCountdownScreenState extends ConsumerState<NewCountdownScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text('New Countdown', style: TextStyle(color: Colors.white)),
-        actions: [
-          TextButton(
-            onPressed: _saveCountdown,
-            child: const Text(
-              'Save',
-              style: TextStyle(color: Colors.blue, fontSize: 16),
-            ),
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -119,6 +121,38 @@ class _NewCountdownScreenState extends ConsumerState<NewCountdownScreen> {
                   style: const TextStyle(color: Colors.white),
                 ),
                 onTap: () => _selectDate(context),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Color',
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: _colors
+                    .map(
+                      (color) => Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedColor = color),
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: _selectedColor == color
+                                    ? Colors.white
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
               const Spacer(),
               SizedBox(

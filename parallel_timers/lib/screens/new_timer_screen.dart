@@ -89,8 +89,10 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(widget.template == null ? 'New Timer' : 'Edit Template',
-            style: const TextStyle(color: Colors.white)),
+        title: Text(
+          widget.template == null ? 'New Timer' : 'Edit Template',
+          style: const TextStyle(color: Colors.white),
+        ),
         actions: [
           TextButton(
             onPressed: _saveTimer,
@@ -143,9 +145,15 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                       maxValue: 99,
                       onChanged: (value) => setState(() => _minutes = value),
                       textStyle: const TextStyle(color: Colors.grey),
-                      selectedTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
+                      selectedTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
                     ),
-                    const Text('min', style: TextStyle(color: Colors.white, fontSize: 24)),
+                    const Text(
+                      'min',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
                     const SizedBox(width: 24),
                     NumberPicker(
                       value: _seconds,
@@ -153,9 +161,15 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                       maxValue: 59,
                       onChanged: (value) => setState(() => _seconds = value),
                       textStyle: const TextStyle(color: Colors.grey),
-                      selectedTextStyle: const TextStyle(color: Colors.white, fontSize: 24),
+                      selectedTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
                     ),
-                    const Text('sec', style: TextStyle(color: Colors.white, fontSize: 24)),
+                    const Text(
+                      'sec',
+                      style: TextStyle(color: Colors.white, fontSize: 24),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -253,18 +267,21 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                 const SizedBox(height: 24),
                 if (widget.template == null)
                   SwitchListTile(
-                    title: const Text('Save as template',
-                        style: TextStyle(color: Colors.white)),
+                    title: const Text(
+                      'Save as template',
+                      style: TextStyle(color: Colors.white),
+                    ),
                     value: _saveAsTemplate,
                     onChanged: (value) {
                       setState(() {
                         _saveAsTemplate = value;
                       });
                     },
-                    activeColor: Colors.blue,
+                    activeThumbColor: Colors.blue,
                     tileColor: const Color(0xFF252A39),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 if (_saveAsTemplate) ...[
                   const SizedBox(height: 24),
@@ -310,8 +327,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                     ),
                     child: Text(
                       widget.template == null ? 'Start Timer' : 'Save Template',
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 16),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
                     ),
                   ),
                 ),
@@ -352,7 +368,9 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
       final totalDurationInSeconds = _minutes * 60 + _seconds;
 
       if (widget.template != null) {
-        ref.read(templateNotifierProvider.notifier).updateTemplate(
+        ref
+            .read(templateNotifierProvider.notifier)
+            .updateTemplate(
               widget.template!.copyWith(
                 name: _name,
                 duration: totalDurationInSeconds,
@@ -363,7 +381,9 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
             );
       } else {
         if (_saveAsTemplate) {
-          ref.read(templateNotifierProvider.notifier).addTemplate(
+          ref
+              .read(templateNotifierProvider.notifier)
+              .addTemplate(
                 name: _name,
                 duration: totalDurationInSeconds,
                 color: _selectedColor,
@@ -371,7 +391,9 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                 categoryId: categoryId,
               );
         }
-        ref.read(timerNotifierProvider.notifier).addTimer(
+        ref
+            .read(timerNotifierProvider.notifier)
+            .addTimer(
               name: _name,
               duration: Duration(seconds: totalDurationInSeconds),
               color: _selectedColor,
