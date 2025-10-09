@@ -1,26 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'timer_provider.dart';
+part of 'countdown_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$timerNotifierHash() => r'cfa9826f75ba91cb318390922e378b85b103d1a5';
+String _$countdownNotifierHash() => r'7aad233a5334297aa35f85720e93a98c593b658a';
 
-/// See also [TimerNotifier].
-@ProviderFor(TimerNotifier)
-final timerNotifierProvider =
-    NotifierProvider<TimerNotifier, Map<String, TimerModel>>.internal(
-  TimerNotifier.new,
-  name: r'timerNotifierProvider',
+/// See also [CountdownNotifier].
+@ProviderFor(CountdownNotifier)
+final countdownNotifierProvider =
+    NotifierProvider<CountdownNotifier, List<Countdown>>.internal(
+  CountdownNotifier.new,
+  name: r'countdownNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$timerNotifierHash,
+      : _$countdownNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$TimerNotifier = Notifier<Map<String, TimerModel>>;
+typedef _$CountdownNotifier = Notifier<List<Countdown>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
