@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/template_model.dart';
+import 'category_provider.dart';
 
 part 'template_provider.g.dart';
 
@@ -15,6 +16,10 @@ class TemplateNotifier extends _$TemplateNotifier {
   @override
   List<TimerTemplate> build() {
     _box = Hive.box<TimerTemplate>('templates');
+    return _getAllTemplates();
+  }
+
+  List<TimerTemplate> _getAllTemplates() {
     final templates = _box.values.toList();
     templates.sort((a, b) => a.order.compareTo(b.order));
     return templates;
@@ -37,24 +42,30 @@ class TemplateNotifier extends _$TemplateNotifier {
       order: state.where((t) => t.category == categoryId).length,
     );
     _box.put(newTemplate.id, newTemplate);
-    state = [...state, newTemplate];
+    state = _getAllTemplates();
   }
 
   void updateTemplate(TimerTemplate template) {
     _box.put(template.id, template);
-    state = [
-      for (final t in state)
-        if (t.id == template.id) template else t,
-    ];
+    state = _getAllTemplates();
   }
 
   void deleteTemplate(TimerTemplate template) {
     _box.delete(template.id);
-    state = state.where((t) => t.id != template.id).toList();
+    state = _getAllTemplates();
+
+    final templatesInCategory =
+        state.where((t) => t.category == template.category);
+    if (templatesInCategory.isEmpty) {
+      ref
+          .read(categoryNotifierProvider.notifier)
+          .deleteCategoryById(template.category);
+    }
   }
 
   void reorderTemplates(String categoryId, int oldIndex, int newIndex) {
-    final templatesInCategory = state.where((t) => t.category == categoryId).toList();
+    final templatesInCategory =
+        state.where((t) => t.category == categoryId).toList();
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
@@ -63,10 +74,11 @@ class TemplateNotifier extends _$TemplateNotifier {
 
     for (int i = 0; i < templatesInCategory.length; i++) {
       final template = templatesInCategory[i];
-      _box.put(template.id, template.copyWith(order: i));
+      if (template.order != i) {
+        final updatedTemplate = template.copyWith(order: i);
+        _box.put(updatedTemplate.id, updatedTemplate);
+      }
     }
-
-    final otherTemplates = state.where((t) => t.category != categoryId).toList();
-    state = [...otherTemplates, ...templatesInCategory]..sort((a, b) => a.order.compareTo(b.order));
+    state = _getAllTemplates();
   }
 }

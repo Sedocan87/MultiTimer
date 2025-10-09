@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:parallel_timers/models/category_model.dart';
 import 'package:parallel_timers/models/template_model.dart';
+import 'package:parallel_timers/providers/category_provider.dart';
 import 'package:parallel_timers/providers/template_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
 
@@ -20,18 +22,30 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   IconData _selectedIcon = Icons.restaurant;
   List<int>? _selectedVibrationPattern;
   bool _saveAsTemplate = false;
-  String _category = 'General';
+  String _categoryName = 'General';
 
   @override
   void initState() {
     super.initState();
     if (widget.template != null) {
-      _name = widget.template!.name;
-      _minutes = widget.template!.duration;
-      _selectedColor = widget.template!.color;
-      _selectedIcon = widget.template!.icon;
-      _category = widget.template!.category;
+      final template = widget.template!;
+      _name = template.name;
+      _minutes = template.duration;
+      _selectedColor = template.color;
+      _selectedIcon = template.icon;
       _saveAsTemplate = true;
+
+      final categories = ref.read(categoryNotifierProvider);
+      CategoryModel? category;
+      for (final c in categories) {
+        if (c.id == template.category) {
+          category = c;
+          break;
+        }
+      }
+      if (category != null) {
+        _categoryName = category.name;
+      }
     }
   }
 
@@ -129,7 +143,8 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                       borderSide: BorderSide(color: Colors.blue),
                     ),
                   ),
-                  onSaved: (value) => _minutes = int.tryParse(value ?? '0') ?? 0,
+                  onSaved: (value) =>
+                      _minutes = int.tryParse(value ?? '0') ?? 0,
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -246,7 +261,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                     style: TextStyle(color: Colors.grey, fontSize: 16),
                   ),
                   TextFormField(
-                    initialValue: _category,
+                    initialValue: _categoryName,
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
                       hintText: 'e.g., Cooking, Workout',
@@ -258,9 +273,11 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                         borderSide: BorderSide(color: Colors.blue),
                       ),
                     ),
-                    onSaved: (value) => _category = value ?? 'General',
+                    onSaved: (value) =>
+                        _categoryName = value?.trim() ?? 'General',
                     validator: (value) {
-                      if (_saveAsTemplate && (value == null || value.isEmpty)) {
+                      if (_saveAsTemplate &&
+                          (value == null || value.trim().isEmpty)) {
                         return 'Please enter a category';
                       }
                       return null;
@@ -297,6 +314,29 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   void _saveTimer() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+      String categoryId;
+
+      if (_saveAsTemplate) {
+        final categories = ref.read(categoryNotifierProvider);
+        CategoryModel? category;
+        for (final c in categories) {
+          if (c.name.toLowerCase() == _categoryName.toLowerCase()) {
+            category = c;
+            break;
+          }
+        }
+
+        if (category == null) {
+          categoryId = ref
+              .read(categoryNotifierProvider.notifier)
+              .addCategory(_categoryName);
+        } else {
+          categoryId = category.id;
+        }
+      } else {
+        categoryId = '';
+      }
+
       if (widget.template != null) {
         ref.read(templateNotifierProvider.notifier).updateTemplate(
               widget.template!.copyWith(
@@ -304,7 +344,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                 duration: _minutes,
                 color: _selectedColor,
                 icon: _selectedIcon,
-                category: _category,
+                category: categoryId,
               ),
             );
       } else {
@@ -314,7 +354,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                 duration: _minutes,
                 color: _selectedColor,
                 icon: _selectedIcon,
-                categoryId: _category,
+                categoryId: categoryId,
               );
         }
         ref.read(timerNotifierProvider.notifier).addTimer(
