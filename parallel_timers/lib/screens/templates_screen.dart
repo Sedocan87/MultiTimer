@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/providers/template_provider.dart';
 import 'package:parallel_timers/providers/timer_provider.dart';
-import 'package:parallel_timers/screens/edit_template_screen.dart';
+import 'package:parallel_timers/screens/new_timer_screen.dart';
 import 'package:parallel_timers/screens/main_screen.dart';
 
 class TemplatesScreen extends ConsumerWidget {
@@ -20,27 +20,23 @@ class TemplatesScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF1A1F2E),
         elevation: 0,
         title: const Text('Templates', style: TextStyle(color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const EditTemplateScreen(),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (templates.isEmpty)
-            const Center(
-              child: Text(
-                'No templates yet. Create one!',
-                style: TextStyle(color: Colors.white, fontSize: 18),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Text(
+                  'No templates yet.\n\nYou can save a timer as a template from the New Timer screen.',
+                  style: TextStyle(
+                    color: Colors.grey[400],
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ...categories.map((category) {
@@ -239,7 +235,7 @@ class TemplatesScreen extends ConsumerWidget {
       if (value == 'edit') {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => EditTemplateScreen(template: template),
+            builder: (context) => NewTimerScreen(template: template),
           ),
         );
       } else if (value == 'delete') {

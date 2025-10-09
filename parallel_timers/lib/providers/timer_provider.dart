@@ -59,7 +59,7 @@ class TimerNotifier extends _$TimerNotifier {
     // If timerIndex is -1, it means the timer was already removed, so we do nothing.
   }
 
-  void addTimerFromSequence(Sequence sequence) {
+  void addTimerFromSequence(TimerSequence sequence) {
     if (state.any((t) => t.sequenceId == sequence.id)) return;
 
     final firstTimer = sequence.timers.first;

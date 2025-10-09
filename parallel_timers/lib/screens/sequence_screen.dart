@@ -43,7 +43,7 @@ class _SequenceScreenState extends ConsumerState<SequenceScreen> {
     Icons.music_note,
   ];
 
-  void _showDeleteConfirmation(BuildContext context, Sequence sequence) {
+  void _showDeleteConfirmation(BuildContext context, TimerSequence sequence) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

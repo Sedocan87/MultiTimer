@@ -5,16 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:parallel_timers/main.dart';
-import 'package:parallel_timers/models/category_model.dart';
 import 'package:parallel_timers/models/color_adapter.dart';
 import 'package:parallel_timers/models/duration_adapter.dart';
-import 'package:parallel_timers/models/finished_timer_model.dart';
 import 'package:parallel_timers/models/icon_data_adapter.dart';
-import 'package:parallel_timers/models/sequence_model.dart';
-import 'package:parallel_timers/models/stopwatch_model.dart';
 import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
-import 'package:parallel_timers/models/timer_model.dart';
 import 'package:parallel_timers/services/ad_service.dart';
 import 'package:parallel_timers/widgets/timer_card.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -38,23 +33,8 @@ void main() {
     if (!Hive.isAdapterRegistered(TimerHistoryAdapter().typeId)) {
       Hive.registerAdapter(TimerHistoryAdapter());
     }
-    if (!Hive.isAdapterRegistered(TimerModelAdapter().typeId)) {
-      Hive.registerAdapter(TimerModelAdapter());
-    }
     if (!Hive.isAdapterRegistered(TimerTemplateAdapter().typeId)) {
       Hive.registerAdapter(TimerTemplateAdapter());
-    }
-    if (!Hive.isAdapterRegistered(SequenceAdapter().typeId)) {
-      Hive.registerAdapter(SequenceAdapter());
-    }
-    if (!Hive.isAdapterRegistered(FinishedTimerModelAdapter().typeId)) {
-      Hive.registerAdapter(FinishedTimerModelAdapter());
-    }
-    if (!Hive.isAdapterRegistered(StopwatchModelAdapter().typeId)) {
-      Hive.registerAdapter(StopwatchModelAdapter());
-    }
-    if (!Hive.isAdapterRegistered(CategoryModelAdapter().typeId)) {
-      Hive.registerAdapter(CategoryModelAdapter());
     }
     if (!Hive.isAdapterRegistered(ColorAdapter().typeId)) {
       Hive.registerAdapter(ColorAdapter());
@@ -66,13 +46,8 @@ void main() {
       Hive.registerAdapter(DurationAdapter());
     }
 
-    await Hive.openBox<TimerModel>('timers');
     await Hive.openBox<TimerTemplate>('templates');
-    await Hive.openBox<Sequence>('sequences');
     await Hive.openBox<TimerHistory>('timer_history');
-    await Hive.openBox<FinishedTimerModel>('finished_timers');
-    await Hive.openBox<StopwatchModel>('stopwatches');
-    await Hive.openBox<CategoryModel>('categories');
   });
 
   tearDownAll(() async {

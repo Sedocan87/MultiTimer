@@ -21,11 +21,16 @@ class TimerCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final timerNotifier = ref.read(timerNotifierProvider.notifier);
-    final sequence = timer.isSequence
-        ? ref
+    TimerSequence? sequence;
+    if (timer.isSequence) {
+      try {
+        sequence = ref
             .watch(sequenceNotifierProvider)
-            .firstWhere((s) => s.id == timer.sequenceId)
-        : null;
+            .firstWhere((s) => s.id == timer.sequenceId);
+      } catch (e) {
+        sequence = null;
+      }
+    }
 
     final progress = timer.duration.inSeconds > 0
         ? timer.remainingTime.inSeconds / timer.duration.inSeconds
