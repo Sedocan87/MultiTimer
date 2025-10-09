@@ -33,7 +33,7 @@ class CategoryNotifier extends _$CategoryNotifier {
     ];
   }
 
-  void addCategory(String name) {
+  String addCategory(String name) {
     final newCategory = CategoryModel(
       id: _uuid.v4(),
       name: name,
@@ -41,17 +41,27 @@ class CategoryNotifier extends _$CategoryNotifier {
     );
     _box.put(newCategory.id, newCategory);
     state = [...state, newCategory];
+    return newCategory.id;
   }
 
   void deleteCategory(CategoryModel category) {
     _box.delete(category.id);
     // Also delete all templates in this category
     final templateBox = Hive.box<TimerTemplate>('templates');
-    final templatesToDelete = templateBox.values.where((t) => t.category == category.id);
+    final templatesToDelete =
+        templateBox.values.where((t) => t.category == category.id);
     for (final template in templatesToDelete) {
       templateBox.delete(template.id);
     }
     state = state.where((c) => c.id != category.id).toList();
+  }
+
+  void deleteCategoryById(String id) {
+    final categoryToDelete = state.where((c) => c.id == id).firstOrNull;
+    if (categoryToDelete != null) {
+      _box.delete(categoryToDelete.id);
+      state = state.where((c) => c.id != categoryToDelete.id).toList();
+    }
   }
 
   void reorderCategories(int oldIndex, int newIndex) {
@@ -62,7 +72,8 @@ class CategoryNotifier extends _$CategoryNotifier {
     state.insert(newIndex, item);
     for (int i = 0; i < state.length; i++) {
       final category = state[i];
-      _box.put(category.id, CategoryModel(id: category.id, name: category.name, order: i));
+      _box.put(
+          category.id, CategoryModel(id: category.id, name: category.name, order: i));
     }
     state = _box.values.toList()..sort((a, b) => a.order.compareTo(b.order));
   }
