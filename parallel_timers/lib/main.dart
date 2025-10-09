@@ -10,6 +10,7 @@ import 'package:parallel_timers/models/icon_data_adapter.dart';
 import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
 import 'package:parallel_timers/screens/main_screen.dart';
+import 'package:parallel_timers/services/notification_service.dart';
 
 Future<void> _initializeHiveBoxes() async {
   // Open templates box with recovery and data validation
@@ -61,6 +62,10 @@ Future<void> _initializeHiveBoxes() async {
 void main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
+
+    // Initialize Notification Service
+    final notificationService = NotificationService();
+    await notificationService.init();
 
     // Initialize Hive
     await Hive.initFlutter();

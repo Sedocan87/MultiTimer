@@ -6,6 +6,7 @@ import 'package:parallel_timers/models/timer_model.dart';
 import 'package:parallel_timers/providers/finished_timer_provider.dart';
 import 'package:parallel_timers/providers/sequence_provider.dart';
 import 'package:parallel_timers/providers/timer_history_provider.dart';
+import 'package:parallel_timers/services/notification_service.dart';
 import 'package:parallel_timers/services/timer_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -17,10 +18,12 @@ const _uuid = Uuid();
 @Riverpod(keepAlive: true)
 class TimerNotifier extends _$TimerNotifier {
   late final TimerService _timerService;
+  late final NotificationService _notificationService;
 
   @override
   List<TimerModel> build() {
     _timerService = TimerService();
+    _notificationService = NotificationService();
     Future.microtask(() async {
       await _timerService.start();
       _timerService.messages.listen(_handleIsolateMessage);
@@ -33,27 +36,41 @@ class TimerNotifier extends _$TimerNotifier {
   }
 
   void _handleIsolateMessage(Map<String, dynamic> message) {
-    final timerId = message['id'] as String;
-    final remainingTime = message['remainingTime'] as int;
+    if (message.containsKey('completed')) {
+      final timerId = message['id'] as String;
+      final timerName = message['name'] as String;
+      _notificationService.showNotification(
+        id: timerId.hashCode,
+        title: 'Timer Finished',
+        body: '$timerName has finished.',
+      );
+      final timerIndex = state.indexWhere((t) => t.id == timerId);
+      if (timerIndex != -1) {
+        _handleTimerCompletion(state[timerIndex]);
+      }
+    } else {
+      final timerId = message['id'] as String;
+      final remainingTime = message['remainingTime'] as int;
 
-    // Use indexWhere to safely find the timer without throwing an error
-    final timerIndex = state.indexWhere((t) => t.id == timerId);
+      // Use indexWhere to safely find the timer without throwing an error
+      final timerIndex = state.indexWhere((t) => t.id == timerId);
 
-    // Check if the timer still exists in our state
-    if (timerIndex != -1) {
-      final currentTimer = state[timerIndex];
-      if (remainingTime > 0) {
-        // If the timer is still running, update its remaining time
-        state = [
-          for (final t in state)
-            if (t.id == timerId)
-              t.copyWith(remainingTime: Duration(seconds: remainingTime))
-            else
-              t,
-        ];
-      } else {
-        // If the timer has finished, call the completion handler
-        _handleTimerCompletion(currentTimer);
+      // Check if the timer still exists in our state
+      if (timerIndex != -1) {
+        final currentTimer = state[timerIndex];
+        if (remainingTime > 0) {
+          // If the timer is still running, update its remaining time
+          state = [
+            for (final t in state)
+              if (t.id == timerId)
+                t.copyWith(remainingTime: Duration(seconds: remainingTime))
+              else
+                t,
+          ];
+        } else {
+          // If the timer has finished, call the completion handler
+          _handleTimerCompletion(currentTimer);
+        }
       }
     }
     // If timerIndex is -1, it means the timer was already removed, so we do nothing.
@@ -91,6 +108,7 @@ class TimerNotifier extends _$TimerNotifier {
     bool isRunning = false,
     TimerCompleteCallback? onComplete,
   }) {
+    debugPrint('Adding timer: $name, duration: $duration');
     final newTimer = TimerModel(
       id: _uuid.v4(),
       name: name,
@@ -106,6 +124,7 @@ class TimerNotifier extends _$TimerNotifier {
     if (isRunning) {
       _timerService.addTimer({
         'id': newTimer.id,
+        'name': newTimer.name,
         'remainingTime': newTimer.remainingTime.inSeconds,
       });
     }

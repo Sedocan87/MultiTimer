@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:isolate';
+import 'package:parallel_timers/services/notification_service.dart';
 
 class TimerService {
   Isolate? _isolate;
@@ -26,6 +28,7 @@ class TimerService {
   }
 
   void addTimer(Map<String, dynamic> timerData) {
+    debugPrint('TimerService: Adding timer: $timerData');
     _sendPort?.send({'command': 'add', 'timer': timerData});
   }
 
@@ -49,7 +52,7 @@ void _isolateEntryPoint(SendPort sendPort) {
   final receivePort = ReceivePort();
   sendPort.send(receivePort.sendPort);
 
-  final activeTimers = <String, int>{}; // Map<timerId, remainingSeconds>
+  final activeTimers = <String, Map<String, dynamic>>{}; // Map<timerId, {name: string, remainingTime: int}>
   Timer? ticker;
 
   void startTicker() {
@@ -62,14 +65,16 @@ void _isolateEntryPoint(SendPort sendPort) {
       }
 
       final List<String> completedTimers = [];
-      activeTimers.forEach((id, remainingTime) {
+      activeTimers.forEach((id, timerData) {
+        final remainingTime = timerData['remainingTime'] as int;
         final newRemainingTime = remainingTime - 1;
         if (newRemainingTime >= 0) {
-          activeTimers[id] = newRemainingTime;
+          timerData['remainingTime'] = newRemainingTime;
           sendPort.send({'id': id, 'remainingTime': newRemainingTime});
         }
         if (newRemainingTime <= 0) {
           completedTimers.add(id);
+          sendPort.send({'id': id, 'completed': true, 'name': timerData['name']});
         }
       });
 
@@ -86,7 +91,10 @@ void _isolateEntryPoint(SendPort sendPort) {
         final timerData = message['timer'] as Map<String, dynamic>;
         final id = timerData['id'] as String;
         final remainingTime = timerData['remainingTime'] as int;
-        activeTimers[id] = remainingTime;
+        activeTimers[id] = {
+          'name': timerData['name'],
+          'remainingTime': remainingTime,
+        };
         startTicker();
         break;
       case 'pause':

@@ -105,7 +105,7 @@ class TemplatesScreen extends ConsumerWidget {
                   onTap: () {
                     ref.read(timerNotifierProvider.notifier).addTimer(
                           name: template.name,
-                          duration: Duration(minutes: template.duration),
+                          duration: Duration(seconds: template.duration),
                           color: template.color,
                           icon: template.icon,
                           isRunning: true,
@@ -188,7 +188,7 @@ class TemplatesScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${template.duration} min',
+                            _formatDuration(template.duration),
                             style: TextStyle(
                               color: template.color,
                               fontSize: 14,
@@ -207,6 +207,18 @@ class TemplatesScreen extends ConsumerWidget {
         const SizedBox(height: 24),
       ],
     );
+  }
+
+  String _formatDuration(int totalSeconds) {
+    final minutes = totalSeconds ~/ 60;
+    final seconds = totalSeconds % 60;
+    if (minutes > 0 && seconds > 0) {
+      return '${minutes}m ${seconds}s';
+    } else if (minutes > 0) {
+      return '${minutes}m';
+    } else {
+      return '${seconds}s';
+    }
   }
 
   void _showTemplateMenu(
