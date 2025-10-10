@@ -1,6 +1,6 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -12,9 +12,6 @@ import 'package:parallel_timers/models/duration_adapter.dart';
 import 'package:parallel_timers/models/icon_data_adapter.dart';
 import 'package:parallel_timers/models/template_model.dart';
 import 'package:parallel_timers/models/timer_history.dart';
-import 'package:parallel_timers/widgets/circular_timer_view.dart';
-import 'package:parallel_timers/widgets/control_buttons.dart';
-import 'package:parallel_timers/widgets/custom_nav_bar.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'mocks/mock_notification_service.dart';
@@ -29,10 +26,17 @@ class FakePathProviderPlatform extends Fake
   }
 }
 
+Future<void> _loadMaterialIconFont() async {
+  final fontLoader = FontLoader('MaterialIcons');
+  fontLoader.addFont(rootBundle.load('assets/fonts/MaterialIcons-Regular.otf'));
+  await fontLoader.load();
+}
+
 void main() {
   setUpAll(() async {
     PathProviderPlatform.instance = FakePathProviderPlatform();
     notificationService = MockNotificationService();
+    await _loadMaterialIconFont();
     await Hive.initFlutter('test');
     if (!Hive.isAdapterRegistered(TimerHistoryAdapter().typeId)) {
       Hive.registerAdapter(TimerHistoryAdapter());
@@ -68,16 +72,22 @@ void main() {
     await Hive.deleteFromDisk();
   });
 
-  testWidgets('MainScreen smoke test', (WidgetTester tester) async {
+  testWidgets('Take screenshot', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
         child: MyApp(),
       ),
     );
-
-    expect(find.text('Parallel Timers'), findsOneWidget);
-    expect(find.byType(CircularTimerView), findsOneWidget);
-    expect(find.byType(ControlButtons), findsOneWidget);
-    expect(find.byType(CustomNavBar), findsOneWidget);
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(MyApp),
+      matchesGoldenFile('goldens/main_screen.png'),
+    );
+    await tester.tap(find.byIcon(Icons.grid_view));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(MyApp),
+      matchesGoldenFile('goldens/templates_screen.png'),
+    );
   });
 }

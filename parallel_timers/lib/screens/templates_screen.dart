@@ -1,243 +1,88 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:parallel_timers/models/category_model.dart';
-import 'package:parallel_timers/providers/category_provider.dart';
-import 'package:parallel_timers/widgets/template_menu.dart';
-import 'package:parallel_timers/models/template_model.dart';
-import 'package:parallel_timers/providers/template_provider.dart';
-import 'package:parallel_timers/providers/timer_provider.dart';
-import 'package:parallel_timers/screens/new_timer_screen.dart';
-import 'package:parallel_timers/screens/main_screen.dart';
 
-class TemplatesScreen extends ConsumerWidget {
+class TemplatesScreen extends StatelessWidget {
   const TemplatesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final templates = ref.watch(templateNotifierProvider);
-    final categories = ref.watch(categoryNotifierProvider);
-
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1F2E),
+      backgroundColor: const Color(0xFF0F1928),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1F2E),
+        title: const Text(
+          'Templates',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: const Color(0xFF0F1928),
         elevation: 0,
-        title: const Text('Templates', style: TextStyle(color: Colors.white)),
+        centerTitle: false,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (templates.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Text(
-                  'No templates yet.\n\nYou can save a timer as a template from the New Timer screen.',
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '4 templates available',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white70,
               ),
             ),
-          ...categories.map((category) {
-            final categoryTemplates = templates
-                .where((t) => t.category == category.id)
-                .toList();
-            return _buildCategory(context, ref, category, categoryTemplates);
-          }),
-        ],
+            const SizedBox(height: 20),
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  _buildTemplateCard('Pasta', '5 seconds', Icons.fastfood, [Colors.pink, Colors.orange]),
+                  _buildTemplateCard('Workout', '2 minutes', Icons.fitness_center, [Colors.cyan, Colors.blue]),
+                  _buildTemplateCard('Pomodoro', '25 minutes', Icons.timer, [Colors.blue, Colors.purple]),
+                  _buildTemplateCard('Meditation', '10 minutes', Icons.self_improvement, [Colors.purple, Colors.indigo]),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: Colors.blue,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildCategory(
-    BuildContext context,
-    WidgetRef ref,
-    CategoryModel category,
-    List<TimerTemplate> templates,
-  ) {
-    if (templates.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Row(
-            children: [
-              Container(
-                width: 4,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: templates.first.color,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                category.name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+  Widget _buildTemplateCard(String title, String subtitle, IconData icon, List<Color> gradientColors) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.1,
-          ),
-          itemCount: templates.length,
-          itemBuilder: (context, templateIndex) {
-            final template = templates[templateIndex];
-            return Builder(
-              builder: (BuildContext context) {
-                return GestureDetector(
-                  onTap: () {
-                    ref.read(timerNotifierProvider.notifier).addTimer(
-                          name: template.name,
-                          duration: Duration(seconds: template.duration),
-                          color: template.color,
-                          icon: template.icon,
-                          isRunning: true,
-                        );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${template.name} timer started'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                    MainScreen.switchToHomeTab(context);
-                  },
-                  onLongPress: () {
-                    _showTemplateMenu(context, ref, template);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          const Color(0xFF252A39),
-                          Color.alphaBlend(
-                            template.color.withAlpha((255 * 0.15).round()),
-                            const Color(0xFF252A39),
-                          ),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: template.color.withAlpha((255 * 0.2).round()),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha((255 * 0.2).round()),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: template.color.withAlpha((255 * 0.15).round()),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            template.icon,
-                            color: template.color,
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            template.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: template.color.withAlpha((255 * 0.15).round()),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            _formatDuration(template.duration),
-                            style: TextStyle(
-                              color: template.color,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+      ),
+      child: Container(
+        margin: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: const Color(0xFF1A2A4A),
         ),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  String _formatDuration(int totalSeconds) {
-    final minutes = totalSeconds ~/ 60;
-    final seconds = totalSeconds % 60;
-    if (minutes > 0 && seconds > 0) {
-      return '${minutes}m ${seconds}s';
-    } else if (minutes > 0) {
-      return '${minutes}m';
-    } else {
-      return '${seconds}s';
-    }
-  }
-
-  void _showTemplateMenu(
-      BuildContext context, WidgetRef ref, TimerTemplate template) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => TemplateMenu(
-        template: template,
-        onEdit: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => NewTimerScreen(template: template),
-            ),
-          );
-        },
-        onDelete: () {
-          ref.read(templateNotifierProvider.notifier).deleteTemplate(template);
-        },
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 40),
+            const SizedBox(height: 10),
+            Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 5),
+            Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 16)),
+          ],
+        ),
       ),
     );
   }

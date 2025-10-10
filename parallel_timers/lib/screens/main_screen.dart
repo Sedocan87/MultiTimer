@@ -1,21 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:parallel_timers/screens/countdown_screen.dart';
-import 'package:parallel_timers/screens/home_screen.dart';
 import 'package:parallel_timers/screens/templates_screen.dart';
-import 'package:parallel_timers/screens/sequence_screen.dart';
-import 'package:parallel_timers/screens/stopwatch_screen.dart';
+import 'package:parallel_timers/widgets/circular_timer_view.dart';
+import 'package:parallel_timers/widgets/control_buttons.dart';
+import 'package:parallel_timers/widgets/custom_nav_bar.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
-
-  static final mainKey = GlobalKey<_MainScreenState>();
-
-  static void switchToHomeTab(BuildContext context) {
-    final state = mainKey.currentState;
-    if (state != null) {
-      state.switchToTab(0);
-    }
-  }
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -24,63 +14,72 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    TemplatesScreen(),
-    SequenceScreen(),
-    StopwatchScreen(),
-    CountdownScreen(),
+  final List<Widget> _screens = [
+    const MainTimerView(),
+    const TemplatesScreen(),
+    // Add other screens here as they are built
+    const Center(child: Text('Coming Soon', style: TextStyle(color: Colors.white))),
+    const Center(child: Text('Coming Soon', style: TextStyle(color: Colors.white))),
+    const Center(child: Text('Coming Soon', style: TextStyle(color: Colors.white))),
   ];
 
-  void switchToTab(int index) {
-    if (mounted) {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1F2E),
-      body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: const Color(0xFF252A39),
-        indicatorColor: Colors.blue.withAlpha((255 * 0.2).round()),
+      backgroundColor: const Color(0xFF0F1928),
+      body: _screens[_selectedIndex],
+      bottomNavigationBar: CustomNavBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.timer, color: Colors.grey),
-            selectedIcon: Icon(Icons.timer, color: Colors.blue),
-            label: 'Timers',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_outline, color: Colors.grey),
-            selectedIcon: Icon(Icons.bookmark, color: Colors.blue),
-            label: 'Templates',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.playlist_play, color: Colors.grey),
-            selectedIcon: Icon(Icons.playlist_play, color: Colors.blue),
-            label: 'Sequences',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.watch, color: Colors.grey),
-            selectedIcon: Icon(Icons.watch, color: Colors.blue),
-            label: 'Stopwatch',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_today, color: Colors.grey),
-            selectedIcon: Icon(Icons.calendar_today, color: Colors.blue),
-            label: 'Countdown',
-          ),
-        ],
+        onItemSelected: _onItemTapped,
+      ),
+    );
+  }
+}
+
+class MainTimerView extends StatelessWidget {
+  const MainTimerView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              'Parallel Timers',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Active Timers: 0 running',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white.withOpacity(0.7),
+              ),
+            ),
+            const Expanded(
+              child: Center(
+                child: CircularTimerView(),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 40.0),
+              child: ControlButtons(),
+            ),
+          ],
+        ),
       ),
     );
   }
